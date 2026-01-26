@@ -1,6 +1,6 @@
 ---
 name: using-git-worktrees
-description: Use when starting feature work that needs isolation from current workspace or before executing implementation plans - creates isolated git worktrees with smart directory selection and safety verification
+description: Use when the current repo has many unrelated changes or the user explicitly requests isolation before starting work
 ---
 
 # Using Git Worktrees
@@ -12,6 +12,14 @@ Git worktrees create isolated workspaces sharing the same repository, allowing w
 **Core principle:** Systematic directory selection + safety verification = reliable isolation.
 
 **Announce at start:** "I'm using the using-git-worktrees skill to set up an isolated workspace."
+
+## When to Use (Decision Gate)
+
+Use a worktree **only** when:
+- The current working directory has lots of unrelated changes (noisy `git status`, conflicting context), **or**
+- The user explicitly requests isolation
+
+Otherwise, **stay in the current workspace**.
 
 ## Directory Selection Process
 
@@ -63,7 +71,7 @@ git check-ignore -q .worktrees 2>/dev/null || git check-ignore -q worktrees 2>/d
 
 Per Jesse's rule "Fix broken things immediately":
 1. Add appropriate line to .gitignore
-2. Commit the change
+2. Commit the change (ask if the workflow requires confirmation)
 3. Proceed with worktree creation
 
 **Why critical:** Prevents accidentally committing worktree contents to repository.
@@ -209,8 +217,8 @@ Ready to implement auth feature
 ## Integration
 
 **Called by:**
-- **brainstorming** (Phase 4) - REQUIRED when design is approved and implementation follows
-- Any skill needing isolated workspace
+- **brainstorming** (Phase 4) - ONLY when the decision gate says isolation is needed
+- Any skill needing isolated workspace under the same gate
 
 **Pairs with:**
 - **finishing-a-development-branch** - REQUIRED for cleanup after work complete

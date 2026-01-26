@@ -1,21 +1,25 @@
 ---
 name: writing-plans
-description: Use when you have a spec or requirements for a multi-step task, before touching code
+description: Use when a multi-step task needs a detailed implementation plan document before any code changes
 ---
 
 # Writing Plans
 
 ## Overview
 
-Write comprehensive implementation plans assuming the engineer has zero context for our codebase and questionable taste. Document everything they need to know: which files to touch for each task, code, testing, docs they might need to check, how to test it. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. Frequent commits.
+Write comprehensive implementation plans assuming the engineer has zero context for our codebase and questionable taste. Document everything they need to know: which files to touch for each task, code, testing, docs they might need to check, how to test it. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD when it applies. Frequent commits.
 
 Assume they are a skilled developer, but know almost nothing about our toolset or problem domain. Assume they don't know good test design very well.
 
 **Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
 
-**Context:** This should be run in a dedicated worktree (created by brainstorming skill).
+**REQUIRED SUB-SKILL:** Use planning-with-files to locate the project’s docs/planning directory and create `task_plan.md`, `findings.md`, and `progress.md`.
 
-**Save plans to:** `docs/plans/YYYY-MM-DD-<feature-name>.md`
+**Workspace:** Default to the current repo workspace. Use `superpowers:using-git-worktrees` only if the current directory has many unrelated changes or the user explicitly requests isolation.
+
+**Save plans to:** Follow project conventions to locate the docs/planning directory (per planning-with-files), and use a feature-specific folder so all related docs live together.
+
+**Co-locate feature docs:** The detailed plan, `task_plan.md`, `findings.md`, and `progress.md` should live in the same feature directory.
 
 ## Bite-Sized Task Granularity
 
@@ -42,6 +46,16 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 **Tech Stack:** [Key technologies/libraries]
 
 ---
+
+**Docs location (example):**
+
+```
+docs/plans/YYYY-MM-DD-<feature-name>/
+  implementation-plan.md
+  task_plan.md
+  findings.md
+  progress.md
+```
 ```
 
 ## Task Structure
@@ -54,7 +68,7 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 - Modify: `exact/path/to/existing.py:123-145`
 - Test: `tests/exact/path/to/test.py`
 
-**Step 1: Write the failing test**
+**Step 1: Write the failing test (if TDD applies)**
 
 ```python
 def test_specific_behavior():
@@ -62,7 +76,7 @@ def test_specific_behavior():
     assert result == expected
 ```
 
-**Step 2: Run test to verify it fails**
+**Step 2: Run test to verify it fails (if TDD applies)**
 
 Run: `pytest tests/path/test.py::test_name -v`
 Expected: FAIL with "function not defined"
@@ -74,7 +88,7 @@ def function(input):
     return expected
 ```
 
-**Step 4: Run test to verify it passes**
+**Step 4: Run test to verify it passes (if TDD applies)**
 
 Run: `pytest tests/path/test.py::test_name -v`
 Expected: PASS
@@ -91,14 +105,15 @@ git commit -m "feat: add specific feature"
 - Exact file paths always
 - Complete code in plan (not "add validation")
 - Exact commands with expected output
-- Reference relevant skills with @ syntax
-- DRY, YAGNI, TDD, frequent commits
+- Reference relevant skills by name (no @ links)
+- DRY, YAGNI, TDD when it applies, frequent commits
+- If unsure whether TDD applies, follow the scope gate in superpowers:test-driven-development
 
 ## Execution Handoff
 
 After saving the plan, offer execution choice:
 
-**"Plan complete and saved to `docs/plans/<filename>.md`. Two execution options:**
+**"Plan complete and saved to `<docs-dir>/<feature>/implementation-plan.md`. Two execution options:**
 
 **1. Subagent-Driven (this session)** - I dispatch fresh subagent per task, review between tasks, fast iteration
 
@@ -112,5 +127,5 @@ After saving the plan, offer execution choice:
 - Fresh subagent per task + code review
 
 **If Parallel Session chosen:**
-- Guide them to open new session in worktree
+- If worktree criteria apply, create one with `superpowers:using-git-worktrees`; otherwise stay in current workspace
 - **REQUIRED SUB-SKILL:** New session uses superpowers:executing-plans

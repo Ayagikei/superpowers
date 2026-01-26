@@ -1,6 +1,6 @@
 ---
 name: test-driven-development
-description: Use when implementing any feature or bugfix, before writing implementation code
+description: Use when fixing repository/domain logic or implementing logic-heavy behavior where automated tests are feasible
 ---
 
 # Test-Driven Development (TDD)
@@ -13,22 +13,26 @@ Write the test first. Watch it fail. Write minimal code to pass.
 
 **Violating the letter of the rules is violating the spirit of the rules.**
 
-## When to Use
+## Scope Gate (Decide First)
 
-**Always:**
-- New features
-- Bug fixes
-- Refactoring
-- Behavior changes
+**Default to TDD when:**
+- Fixing Repository / domain / data-access logic
+- Changing business rules or logic-heavy behavior
+- Refactoring logic with regression risk
 
-**Exceptions (ask your human partner):**
-- Throwaway prototypes
-- Generated code
-- Configuration files
+**Consider TDD when feasible:**
+- UI changes with practical automated UI tests
 
-Thinking "skip TDD just this once"? Stop. That's rationalization.
+**You may skip TDD (with explicit rationale + user confirmation):**
+- UI-only changes where UI tests are impractical
+- New requirements with minimal logic or mostly copy/markup changes
+- Throwaway prototypes, generated code, or config-only changes
 
-## The Iron Law
+**If the user explicitly requests TDD:** Do it, regardless of category.
+
+Thinking "skip TDD just this once" when TDD applies? Stop. That's rationalization.
+
+## The Iron Law (When TDD Applies)
 
 ```
 NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST
@@ -36,7 +40,7 @@ NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST
 
 Write code before the test? Delete it. Start over.
 
-**No exceptions:**
+**No exceptions (when TDD applies):**
 - Don't keep it as "reference"
 - Don't "adapt" it while writing tests
 - Don't look at it
@@ -269,7 +273,7 @@ Tests-first force edge case discovery before implementing. Tests-after verify yo
 | "Manual test faster" | Manual doesn't prove edge cases. You'll re-test every change. |
 | "Existing code has no tests" | You're improving it. Add tests for existing code. |
 
-## Red Flags - STOP and Start Over
+## Red Flags - STOP and Start Over (When TDD Applies)
 
 - Code before test
 - Test after implementation
@@ -326,7 +330,7 @@ Extract validation for multiple fields if needed.
 
 ## Verification Checklist
 
-Before marking work complete:
+When TDD applies, before marking work complete:
 
 - [ ] Every new function/method has a test
 - [ ] Watched each test fail before implementing
@@ -337,7 +341,7 @@ Before marking work complete:
 - [ ] Tests use real code (mocks only if unavoidable)
 - [ ] Edge cases and errors covered
 
-Can't check all boxes? You skipped TDD. Start over.
+If TDD applied and you can't check all boxes, you skipped TDD. Start over.
 
 ## When Stuck
 
@@ -350,9 +354,9 @@ Can't check all boxes? You skipped TDD. Start over.
 
 ## Debugging Integration
 
-Bug found? Write failing test reproducing it. Follow TDD cycle. Test proves fix and prevents regression.
+Repository/domain logic bug found? Write failing test reproducing it. Follow TDD cycle. Test proves fix and prevents regression. For UI-only bugs, follow the scope gate first.
 
-Never fix bugs without a test.
+When TDD applies, never fix bugs without a test.
 
 ## Testing Anti-Patterns
 
@@ -364,8 +368,9 @@ When adding mocks or test utilities, read @testing-anti-patterns.md to avoid com
 ## Final Rule
 
 ```
-Production code → test exists and failed first
-Otherwise → not TDD
+When TDD applies:
+  Production code → test exists and failed first
+  Otherwise → not TDD
 ```
 
-No exceptions without your human partner's permission.
+No exceptions when TDD applies without your human partner's permission to skip.

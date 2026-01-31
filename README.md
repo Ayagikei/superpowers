@@ -2,6 +2,12 @@
 
 Superpowers is a complete software development workflow for your coding agents, built on top of a set of composable "skills" and some initial instructions that make sure your agent uses them.
 
+## Fork Notes (Ayagikei)
+
+This fork tracks upstream and adds Codex-focused improvements. Current additions:
+
+- **unattended-mode** — Enables unattended execution when the user explicitly asks for no interruptions, using conservative defaults, explicit assumptions, and non-destructive operations.
+
 ## How it works
 
 It starts from the moment you fire up your coding agent. As soon as it sees that you're building something, it *doesn't* just jump into trying to write code. Instead, it steps back and asks you what you're really trying to do. 

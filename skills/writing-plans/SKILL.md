@@ -113,13 +113,19 @@ git commit -m "feat: add specific feature"
 
 After saving the plan, offer execution choice:
 
-**"Plan complete and saved to `<docs-dir>/<feature>/implementation-plan.md`. Two execution options:**
+**"Plan complete and saved to `<docs-dir>/<feature>/implementation-plan.md`. Three execution options:**
 
-**1. Subagent-Driven (this session)** - I dispatch fresh subagent per task, review between tasks, fast iteration
+**1. 当前会话继续执行 (Recommended)** - Manual execution in this session
 
-**2. Parallel Session (separate)** - Open new session with executing-plans, batch execution with checkpoints
+**2. 子代理驱动（本会话内逐任务执行）** - Subagent-Driven (this session): I dispatch fresh subagent per task, review between tasks, fast iteration
+
+**3. 并行会话（另开执行 plans）** - Parallel Session (separate): Open new session with executing-plans, batch execution with checkpoints
 
 **Which approach?"**
+
+**If Current Session chosen:**
+- Stay in this session
+- Execute tasks manually (no subagents)
 
 **If Subagent-Driven chosen:**
 - **REQUIRED SUB-SKILL:** Use superpowers:subagent-driven-development

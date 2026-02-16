@@ -15,6 +15,7 @@ Dispatch superpowers:code-reviewer subagent to catch issues before they cascade.
 - After each task in subagent-driven development
 - After completing major feature
 - Before merge to main
+- For mobile changes (iOS/Android/KMP), also consult `mobile-diff-review` for platform-specific risk checks
 
 **Optional but valuable:**
 - When stuck (fresh perspective)
@@ -32,6 +33,10 @@ HEAD_SHA=$(git rev-parse HEAD)
 **2. Dispatch code-reviewer subagent:**
 
 Use Task tool with superpowers:code-reviewer type, fill template at `code-reviewer.md`
+
+**2.5 If the diff touches mobile code (iOS/Android/KMP):**
+
+Run an additional pass with `mobile-diff-review` to catch mobile-specific issues (memory leaks, coroutine/thread misuse, main-thread blocking, rendering regressions, and data consistency risks).
 
 **Placeholders:**
 - `{WHAT_WAS_IMPLEMENTED}` - What you just built

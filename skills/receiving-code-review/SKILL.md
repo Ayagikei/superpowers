@@ -97,6 +97,24 @@ IF reviewer suggests "implementing properly":
 
 **your human partner's rule:** "You and reviewer both report to me. If we don't need this feature, don't add it."
 
+## Risk-Based Scope Control
+
+```
+IF a suggestion targets an ultra-edge, low-probability case:
+  Estimate blast radius first
+
+  IF fix requires broad or unpredictable changes:
+    Prefer stable fallback/degradation over deep rewrites
+    Push back unless user impact is material
+```
+
+**Prioritize fixes by real risk:**
+- Must-fix first: crash, data loss, security, hangs, severe performance regressions
+- Then: reproducible functional bugs
+- Last: extreme edge cases (only when low-risk or explicitly required)
+
+**KMP example:** Do not over-engineer around hypothetical "shared layer not fully rebuilt" anomalies unless they are reproducible in real workflows/environments.
+
 ## Implementation Order
 
 ```
@@ -108,7 +126,22 @@ FOR multi-item feedback:
      - Complex fixes (refactoring, logic)
   3. Test each fix individually
   4. Verify no regressions
+  5. If fixes start oscillating (A->B->A), STOP and reassess root cause before more changes
 ```
+
+## Detect Feedback Oscillation (A↔B Loops)
+
+```
+IF subagent feedback starts ping-ponging:
+  "Fix A" causes B, then "Fix B" reintroduces A
+THEN:
+  1. Stop patch-chasing
+  2. Identify one root cause and one invariant to protect
+  3. Choose the smallest safe fix for real production risk
+  4. Keep rare extremes on a basic fallback path unless explicitly requested
+```
+
+Goal: robust production behavior, not theoretical perfection through high-risk over-fixing.
 
 ## When To Push Back
 
@@ -119,6 +152,7 @@ Push back when:
 - Technically incorrect for this stack
 - Legacy/compatibility reasons exist
 - Conflicts with your human partner's architectural decisions
+- Suggestion optimizes ultra-edge scenarios with high blast radius and low user impact
 
 **How to push back:**
 - Use technical reasoning, not defensiveness
@@ -172,6 +206,8 @@ State the correction factually and move on.
 | Avoiding pushback | Technical correctness > comfort |
 | Partial implementation | Clarify all items first |
 | Can't verify, proceed anyway | State limitation, ask for direction |
+| Over-fixing rare edge cases | Prioritize by user impact; keep fallback when safer |
+| Ping-ponging A↔B fixes | Stop, reassess root cause, then pick smallest safe change |
 
 ## Real Examples
 

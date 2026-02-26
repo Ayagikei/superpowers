@@ -46,6 +46,7 @@ Run an additional pass with `mobile-diff-review` to catch mobile-specific issues
 - `{DESCRIPTION}` - Brief summary
 
 **3. Act on feedback:**
+- Recommended: Pair with `receiving-code-review` to process feedback before implementation
 - Fix Critical issues immediately
 - Fix Important issues before proceeding
 - Note Minor issues for later

@@ -33,7 +33,17 @@ Thanks!
 
 ## Installation
 
-**Note:** Installation differs by platform. Claude Code has a built-in plugin system. Codex and OpenCode require manual setup.
+**Note:** Installation differs by platform. Claude Code or Cursor have built-in plugin marketplaces. Codex and OpenCode require manual setup.
+
+### Claude Code Official Marketplace
+
+Superpowers is available via the [official Claude plugin marketplace](https://claude.com/plugins/superpowers)
+
+Install the plugin from Claude marketplace:
+
+```bash
+/plugin install superpowers@claude-plugins-official
+```
 
 ### Claude Code (via Plugin Marketplace)
 
@@ -49,9 +59,15 @@ Then install the plugin from this marketplace:
 /plugin install superpowers@superpowers-marketplace
 ```
 
-### Verify Installation
+### Cursor (via Plugin Marketplace)
 
-Start a new session and ask Claude to help with something that would trigger a skill (e.g., "help me plan this feature" or "let's debug this issue"). Claude should automatically invoke the relevant superpowers skill.
+In Cursor Agent chat, install from marketplace:
+
+```text
+/add-plugin superpowers
+```
+
+or search for "superpowers" in the plugin marketplace.
 
 ### Codex
 
@@ -72,6 +88,22 @@ Fetch and follow instructions from https://raw.githubusercontent.com/obra/superp
 ```
 
 **Detailed docs:** [docs/README.opencode.md](docs/README.opencode.md)
+
+### Gemini CLI
+
+```bash
+gemini extensions install https://github.com/obra/superpowers
+```
+
+To update:
+
+```bash
+gemini extensions update superpowers
+```
+
+### Verify Installation
+
+Start a new session in your chosen platform and ask for something that should trigger a skill (for example, "help me plan this feature" or "let's debug this issue"). The agent should automatically invoke the relevant superpowers skill.
 
 ## The Basic Workflow
 

@@ -19,10 +19,37 @@ WHEN receiving code review feedback:
 1. READ: Complete feedback without reacting
 2. UNDERSTAND: Restate requirement in own words (or ask)
 3. VERIFY: Check against codebase reality
-4. EVALUATE: Technically sound for THIS codebase?
-5. RESPOND: Technical acknowledgment or reasoned pushback
-6. IMPLEMENT: One item at a time, test each
+4. SCOPE-CHECK: Is this required for the approved task?
+5. EVALUATE: Technically sound for THIS codebase?
+6. RESPOND: Technical acknowledgment or reasoned pushback
+7. IMPLEMENT: One item at a time, test each
 ```
+
+## Scope Gate Before Any Change
+
+**Technical correctness does not equal approval to expand scope.**
+
+For each review item, ask:
+
+1. Is it required to satisfy the approved plan / requirement?
+2. Is it required to fix a regression or bug introduced by this task?
+3. Is it required for build, tests, security, data correctness, or release safety?
+
+**If yes:** treat it as in-scope and continue normal verification.
+
+**If no:** treat it as a scope expansion.
+
+- Do **not** implement it yet
+- Report it to your human partner as an optional follow-up
+- Explain why it was suggested, what files/behavior it would change, and what test scope would expand
+- Wait for explicit approval before coding
+
+If your human partner approves the extra work, record the approved delta before implementation:
+- what extra change was approved
+- why it is being added
+- affected files / modules
+- testcases or verification scope that must be updated
+- how you will report the extra scope back to your human partner after implementation
 
 ## Forbidden Responses
 
@@ -81,6 +108,10 @@ IF can't easily verify:
 
 IF conflicts with your human partner's prior decisions:
   Stop and discuss with your human partner first
+
+IF technically valid but outside the approved task:
+  Surface it as an optional follow-up
+  Do not implement without your human partner's approval
 ```
 
 **your human partner's rule:** "External feedback - be skeptical, but check carefully"
@@ -120,13 +151,14 @@ IF a suggestion targets an ultra-edge, low-probability case:
 ```
 FOR multi-item feedback:
   1. Clarify anything unclear FIRST
-  2. Then implement in this order:
+  2. Classify each item as in-scope or scope-expanding
+  3. Then implement in this order:
      - Blocking issues (breaks, security)
      - Simple fixes (typos, imports)
      - Complex fixes (refactoring, logic)
-  3. Test each fix individually
-  4. Verify no regressions
-  5. If fixes start oscillating (A->B->A), STOP and reassess root cause before more changes
+  4. Test each fix individually
+  5. Verify no regressions
+  6. If fixes start oscillating (A->B->A), STOP and reassess root cause before more changes
 ```
 
 ## Detect Feedback Oscillation (A↔B Loops)
@@ -169,6 +201,7 @@ When feedback IS correct:
 ✅ "Fixed. [Brief description of what changed]"
 ✅ "Good catch - [specific issue]. Fixed in [location]."
 ✅ [Just fix it and show in the code]
+✅ "This is a valid follow-up, but it expands the approved scope. I have not changed it; surfacing it for approval."
 
 ❌ "You're absolutely right!"
 ❌ "Great point!"
@@ -203,6 +236,7 @@ State the correction factually and move on.
 | Blind implementation | Verify against codebase first |
 | Batch without testing | One at a time, test each |
 | Assuming reviewer is right | Check if breaks things |
+| Implementing technically valid but out-of-scope feedback | Surface it, get approval, record scope/test impact first |
 | Avoiding pushback | Technical correctness > comfort |
 | Partial implementation | Clarify all items first |
 | Can't verify, proceed anyway | State limitation, ask for direction |
@@ -234,6 +268,25 @@ Reviewer: "Implement proper metrics tracking with database, date filters, CSV ex
 your human partner: "Fix items 1-6"
 You understand 1,2,3,6. Unclear on 4,5.
 ✅ "Understand 1,2,3,6. Need clarification on 4 and 5 before implementing."
+```
+
+**Scope Expansion Disguised as Optimization (Bad):**
+```
+Context: Iteration adds custom sound effects. Reviewer says:
+"While you're here, switch item loading to use in-memory state instead of repo lookup. It should be faster."
+
+❌ "Makes sense - I'll optimize that too."
+❌ [Changes retrieval to in-memory state without asking]
+```
+
+**Scope Expansion Disguised as Optimization (Good):**
+```
+Context: Iteration adds custom sound effects. Reviewer says:
+"While you're here, switch item loading to use in-memory state instead of repo lookup. It should be faster."
+
+✅ "This is a possible follow-up, but it expands the approved scope. I have not changed it."
+✅ "Current expected behavior is repo-backed fallback; in-memory state may be incomplete here."
+✅ "If you want this optimization, I need approval first and will record the extra scope, affected retrieval path, and expanded tests/verification."
 ```
 
 ## GitHub Thread Replies

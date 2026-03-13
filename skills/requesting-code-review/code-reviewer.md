@@ -53,6 +53,7 @@ git diff {BASE_SHA}..{HEAD_SHA}
 - Implementation matches spec?
 - No scope creep?
 - Breaking changes documented?
+- If you see optional improvements, are they clearly separated from must-fix items?
 
 **Production Readiness:**
 - Migration strategy (if schema changes)?
@@ -75,6 +76,9 @@ git diff {BASE_SHA}..{HEAD_SHA}
 
 #### Minor (Nice to Have)
 [Code style, optimization opportunities, documentation improvements]
+
+### Out-of-Scope Follow-Ups (Require User Approval)
+[Optional improvements that are NOT required to complete the approved task]
 
 **For each issue:**
 - File:line reference
@@ -99,6 +103,8 @@ git diff {BASE_SHA}..{HEAD_SHA}
 - Explain WHY issues matter
 - Acknowledge strengths
 - Give clear verdict
+- Separate must-fix issues from optional follow-ups
+- Flag unapproved scope expansion explicitly
 
 **DON'T:**
 - Say "looks good" without checking
@@ -106,6 +112,8 @@ git diff {BASE_SHA}..{HEAD_SHA}
 - Give feedback on code you didn't review
 - Be vague ("improve error handling")
 - Avoid giving a clear verdict
+- Present optional optimizations/refactors as required work unless they are necessary for correctness, safety, or plan compliance
+- Blur "this would be nicer" together with "this must be fixed now"
 
 ## Example Output
 
@@ -134,9 +142,14 @@ git diff {BASE_SHA}..{HEAD_SHA}
    - Issue: No "X of Y" counter for long operations
    - Impact: Users don't know how long to wait
 
+### Out-of-Scope Follow-Ups (Require User Approval)
+1. **Consider config file for excluded projects**
+   - Why surfaced: Could improve portability
+   - Why not required now: Current task is complete without it; this is an adjacent enhancement, not a defect in the approved scope
+
 ### Recommendations
 - Add progress reporting for user experience
-- Consider config file for excluded projects (portability)
+- If the human approves follow-up scope, consider config file support for excluded projects
 
 ### Assessment
 

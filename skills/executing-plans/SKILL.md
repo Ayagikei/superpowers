@@ -7,7 +7,7 @@ description: Use when you have a written implementation plan to execute in a sep
 
 ## Overview
 
-Load plan, review critically, execute all tasks, report when complete.
+Load plan, review critically, execute approved tasks only, report when complete.
 
 **Announce at start:** "I'm using the executing-plans skill to implement this plan."
 
@@ -17,17 +17,31 @@ Load plan, review critically, execute all tasks, report when complete.
 
 ### Step 1: Load and Review Plan
 1. Read plan file
-2. Review critically - identify any questions or concerns about the plan
+2. Review critically - identify any questions, concerns, and explicit scope boundaries in the plan
 3. If concerns: Raise them with your human partner before starting
 4. If no concerns: Create TodoWrite and proceed
 
 ### Step 2: Execute Tasks
 
 For each task:
-1. Mark as in_progress
-2. Follow each step exactly (plan has bite-sized steps)
-3. Run verifications as specified
-4. Mark as completed
+1. Run a scope gate:
+   - **Directly allowed:** the smallest set of changes explicitly required by the plan, the minimum supporting changes required to unblock the task, and fixes for regressions introduced by the task
+   - **Not directly allowed:** opportunistic refactors, cleanup, performance tuning, API redesign, or adjacent bug fixes that are not required for the current step
+2. If you discover a worthwhile but non-essential change, stop and ask your human partner before implementing it
+3. Mark as in_progress
+4. Follow each step exactly (plan has bite-sized steps)
+5. Run verifications as specified
+6. Mark as completed
+
+### Step 2.5: If Scope Expands
+
+Only after explicit approval from your human partner:
+- Update the written plan/progress to record the approved scope delta
+- State what changed relative to the original plan
+- State which files/modules are now in scope
+- Expand testcases / verification scope to match the newly approved work
+- Report the approved scope expansion back to your human partner when summarizing progress/completion
+- Then implement the additional change
 
 ### Step 3: Complete Development
 
@@ -43,6 +57,7 @@ After all tasks complete and verified:
 - Plan has critical gaps preventing starting
 - You don't understand an instruction
 - Verification fails repeatedly
+- You find an unrelated or optional improvement that is not required for the current plan step
 
 **Ask for clarification rather than guessing.**
 
@@ -61,6 +76,8 @@ After all tasks complete and verified:
 - Reference skills when plan says to
 - Stop when blocked, don't guess
 - Never start implementation on main/master branch without explicit user consent
+- Do not treat reviewer suggestions or personal optimization ideas as approved scope
+- If extra work is approved, record the delta and verification impact before coding
 
 ## Integration
 

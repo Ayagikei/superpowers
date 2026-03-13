@@ -7,7 +7,7 @@ description: Use when completing tasks, implementing major features, or before m
 
 Dispatch superpowers:code-reviewer subagent to catch issues before they cascade. The reviewer gets precisely crafted context for evaluation — never your session's history. This keeps the reviewer focused on the work product, not your thought process, and preserves your own context for continued work.
 
-**Core principle:** Review early, review often.
+**Core principle:** Review early, review often — but keep review outcomes inside the approved scope.
 
 ## When to Request Review
 
@@ -34,6 +34,25 @@ HEAD_SHA=$(git rev-parse HEAD)
 
 Use Task tool with superpowers:code-reviewer type, fill template at `code-reviewer.md`
 
+**2.2 Wait patiently for the review:**
+
+Code review is not an RPC. Give the reviewer enough time to read the diff, compare it to the plan, and write actionable findings.
+
+- If you can continue other non-overlapping work, do that first and let review run in the background
+- If review is on the critical path, wait in longer intervals rather than busy-polling
+- In Codex, prefer a single longer `wait` when blocked (minutes, not seconds)
+- Do not interrupt just because the first wait returned no result
+- Only interrupt when priorities changed, the context became stale, or you have strong evidence the reviewer is stuck
+
+**2.3 Frame the review around approved scope:**
+
+Tell the reviewer to separate:
+
+- **In-scope issues** — missing requirements, regressions, correctness problems, test gaps, or production risks that must be fixed for the approved task
+- **Out-of-scope follow-ups** — optional optimizations, refactors, cleanup, or adjacent improvements that may be valid ideas but are **not approved changes**
+
+Technically sound feedback is not automatic approval to expand scope.
+
 **2.5 If the diff touches mobile code (iOS/Android/KMP):**
 
 Run an additional pass with `mobile-diff-review` to catch mobile-specific issues (memory leaks, coroutine/thread misuse, main-thread blocking, rendering regressions, and data consistency risks).
@@ -47,9 +66,12 @@ Run an additional pass with `mobile-diff-review` to catch mobile-specific issues
 
 **3. Act on feedback:**
 - Recommended: Pair with `receiving-code-review` to process feedback before implementation
-- Fix Critical issues immediately
-- Fix Important issues before proceeding
+- First classify each review item: **required now** or **optional follow-up**
+- Fix Critical in-scope issues immediately
+- Fix Important in-scope issues before proceeding
 - Note Minor issues for later
+- Do **not** implement optional follow-ups or scope-expanding suggestions without explicit user approval
+- If the user approves extra scope, record the approved delta before coding: what is being added, why, affected files, and what tests / verification scope must expand
 - Push back if reviewer is wrong (with reasoning)
 
 ## Example
@@ -102,6 +124,10 @@ You: [Fix progress indicators]
 - Ignore Critical issues
 - Proceed with unfixed Important issues
 - Argue with valid technical feedback
+- Treat a slow reviewer as a failed reviewer after one short wait
+- Interrupt a reviewer just to get a faster but shallower answer
+- Treat a reviewer suggestion as approved scope just because it sounds technically right
+- Piggyback an optimization / refactor / cleanup that was not part of the approved task
 
 **If reviewer wrong:**
 - Push back with technical reasoning

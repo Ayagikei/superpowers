@@ -26,7 +26,8 @@ Load plan, review critically, execute approved tasks only, report when complete.
 For each task:
 1. Run a scope gate:
    - **Directly allowed:** the smallest set of changes explicitly required by the plan, the minimum supporting changes required to unblock the task, and fixes for regressions introduced by the task
-   - **Not directly allowed:** opportunistic refactors, cleanup, performance tuning, API redesign, or adjacent bug fixes that are not required for the current step
+   - **Not directly allowed:** opportunistic refactors, cleanup, performance tuning, API redesign, adjacent bug fixes that are not required for the current step, or reviewer-proposed requirement expansions
+   - **Requirement expansion examples:** supporting additional scenarios, historical remediation/backfill/compensation, migrations, or broader behavior changes than the approved step described
 2. If you discover a worthwhile but non-essential change, stop and ask your human partner before implementing it
 3. Mark as in_progress
 4. Follow each step exactly (plan has bite-sized steps)
@@ -58,6 +59,7 @@ After all tasks complete and verified:
 - You don't understand an instruction
 - Verification fails repeatedly
 - You find an unrelated or optional improvement that is not required for the current plan step
+- A reviewer or your own investigation suggests a broader requirement than the plan approved, even if it is related to the same defect family
 
 **Ask for clarification rather than guessing.**
 
@@ -78,6 +80,7 @@ After all tasks complete and verified:
 - Never start implementation on main/master branch without explicit user consent
 - Do not treat reviewer suggestions or personal optimization ideas as approved scope
 - If extra work is approved, record the delta and verification impact before coding
+- Do not silently convert a narrow bugfix into a wider requirement, migration, or backfill
 
 ## Integration
 

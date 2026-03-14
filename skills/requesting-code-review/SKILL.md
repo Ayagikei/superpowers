@@ -50,8 +50,9 @@ Tell the reviewer to separate:
 
 - **In-scope issues** — missing requirements, regressions, correctness problems, test gaps, or production risks that must be fixed for the approved task
 - **Out-of-scope follow-ups** — optional optimizations, refactors, cleanup, or adjacent improvements that may be valid ideas but are **not approved changes**
+- **Requirement expansions** — broader behavior changes, additional scenario support, legacy backfills/compensation/migrations, or other suggestions that materially extend what this task delivers
 
-Technically sound feedback is not automatic approval to expand scope.
+Technically sound feedback is not automatic approval to expand scope. If a reviewer proposes a larger requirement than the approved task, that still needs user approval.
 
 **2.5 If the diff touches mobile code (iOS/Android/KMP):**
 
@@ -66,11 +67,11 @@ Run an additional pass with `mobile-diff-review` to catch mobile-specific issues
 
 **3. Act on feedback:**
 - Recommended: Pair with `receiving-code-review` to process feedback before implementation
-- First classify each review item: **required now** or **optional follow-up**
+- First classify each review item: **required now**, **optional follow-up**, or **requirement expansion**
 - Fix Critical in-scope issues immediately
 - Fix Important in-scope issues before proceeding
 - Note Minor issues for later
-- Do **not** implement optional follow-ups or scope-expanding suggestions without explicit user approval
+- Do **not** implement optional follow-ups or requirement expansions without explicit user approval
 - If the user approves extra scope, record the approved delta before coding: what is being added, why, affected files, and what tests / verification scope must expand
 - Push back if reviewer is wrong (with reasoning)
 
@@ -128,6 +129,7 @@ You: [Fix progress indicators]
 - Interrupt a reviewer just to get a faster but shallower answer
 - Treat a reviewer suggestion as approved scope just because it sounds technically right
 - Piggyback an optimization / refactor / cleanup that was not part of the approved task
+- Treat a reviewer-proposed requirement expansion as a normal bugfix just because it belongs to the same defect family
 
 **If reviewer wrong:**
 - Push back with technical reasoning

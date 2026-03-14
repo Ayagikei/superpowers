@@ -39,6 +39,12 @@ For each review item, ask:
 
 **If no:** treat it as a scope expansion.
 
+**Default to requirement expansion** when the suggestion:
+- broadens supported scenarios, user flows, or behavior beyond the approved task
+- changes the time horizon or affected population (for example: future events only → historical events too)
+- introduces backfill, compensation, migration, replay, or repair logic for existing data
+- turns a narrow bugfix into a larger product or operational capability
+
 - Do **not** implement it yet
 - Report it to your human partner as an optional follow-up
 - Explain why it was suggested, what files/behavior it would change, and what test scope would expand
@@ -112,6 +118,10 @@ IF conflicts with your human partner's prior decisions:
 IF technically valid but outside the approved task:
   Surface it as an optional follow-up
   Do not implement without your human partner's approval
+
+IF technically valid but it expands the requirement:
+  Treat it as a requirement expansion, not a normal review fix
+  Stop and get your human partner's approval before any code changes
 ```
 
 **your human partner's rule:** "External feedback - be skeptical, but check carefully"
@@ -151,7 +161,7 @@ IF a suggestion targets an ultra-edge, low-probability case:
 ```
 FOR multi-item feedback:
   1. Clarify anything unclear FIRST
-  2. Classify each item as in-scope or scope-expanding
+  2. Classify each item as in-scope, optional follow-up, or requirement expansion
   3. Then implement in this order:
      - Blocking issues (breaks, security)
      - Simple fixes (typos, imports)
@@ -185,6 +195,7 @@ Push back when:
 - Legacy/compatibility reasons exist
 - Conflicts with your human partner's architectural decisions
 - Suggestion optimizes ultra-edge scenarios with high blast radius and low user impact
+- Suggestion enlarges the requirement beyond what your human partner approved
 
 **How to push back:**
 - Use technical reasoning, not defensiveness
@@ -237,6 +248,7 @@ State the correction factually and move on.
 | Batch without testing | One at a time, test each |
 | Assuming reviewer is right | Check if breaks things |
 | Implementing technically valid but out-of-scope feedback | Surface it, get approval, record scope/test impact first |
+| Treating requirement expansion as "same bug, bigger fix" | Stop, call out the requirement change, get approval before coding |
 | Avoiding pushback | Technical correctness > comfort |
 | Partial implementation | Clarify all items first |
 | Can't verify, proceed anyway | State limitation, ask for direction |
@@ -287,6 +299,25 @@ Context: Iteration adds custom sound effects. Reviewer says:
 ✅ "This is a possible follow-up, but it expands the approved scope. I have not changed it."
 ✅ "Current expected behavior is repo-backed fallback; in-memory state may be incomplete here."
 ✅ "If you want this optimization, I need approval first and will record the extra scope, affected retrieval path, and expanded tests/verification."
+```
+
+**Requirement Expansion Disguised as Thoroughness (Bad):**
+```
+Context: Bug fix is approved only for future history writes on new events. Reviewer says:
+"We should also compensate legacy events that already missed writes."
+
+❌ "That's reasonable - I'll add a compensation pass too."
+❌ [Implements backfill / repair flow without asking]
+```
+
+**Requirement Expansion Disguised as Thoroughness (Good):**
+```
+Context: Bug fix is approved only for future history writes on new events. Reviewer says:
+"We should also compensate legacy events that already missed writes."
+
+✅ "That may be a valid follow-up, but it expands the requirement from forward-only fixes to historical remediation."
+✅ "I have not implemented it. Backfill/compensation changes scope, blast radius, and verification scope."
+✅ "If you want this approved, I need confirmation first and will record the extra behavior, affected data range, and expanded tests/verification."
 ```
 
 ## GitHub Thread Replies

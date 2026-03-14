@@ -54,6 +54,7 @@ git diff {BASE_SHA}..{HEAD_SHA}
 - No scope creep?
 - Breaking changes documented?
 - If you see optional improvements, are they clearly separated from must-fix items?
+- If you see a broader requirement change, is it clearly labeled as a requirement expansion rather than a review fix?
 
 **Production Readiness:**
 - Migration strategy (if schema changes)?
@@ -80,6 +81,9 @@ git diff {BASE_SHA}..{HEAD_SHA}
 ### Out-of-Scope Follow-Ups (Require User Approval)
 [Optional improvements that are NOT required to complete the approved task]
 
+### Requirement Expansions (Require User Approval)
+[Broader behavior changes, additional scenarios, legacy backfills/compensation, migrations, or other new requirements that exceed the approved task]
+
 **For each issue:**
 - File:line reference
 - What's wrong
@@ -103,7 +107,7 @@ git diff {BASE_SHA}..{HEAD_SHA}
 - Explain WHY issues matter
 - Acknowledge strengths
 - Give clear verdict
-- Separate must-fix issues from optional follow-ups
+- Separate must-fix issues from optional follow-ups and requirement expansions
 - Flag unapproved scope expansion explicitly
 
 **DON'T:**
@@ -114,6 +118,7 @@ git diff {BASE_SHA}..{HEAD_SHA}
 - Avoid giving a clear verdict
 - Present optional optimizations/refactors as required work unless they are necessary for correctness, safety, or plan compliance
 - Blur "this would be nicer" together with "this must be fixed now"
+- Present a requirement expansion as part of review-fix scope unless the approved plan already includes it or release safety truly requires it
 
 ## Example Output
 
@@ -146,6 +151,11 @@ git diff {BASE_SHA}..{HEAD_SHA}
 1. **Consider config file for excluded projects**
    - Why surfaced: Could improve portability
    - Why not required now: Current task is complete without it; this is an adjacent enhancement, not a defect in the approved scope
+
+### Requirement Expansions (Require User Approval)
+1. **Backfill legacy records that missed historical writes**
+   - Why surfaced: Would repair older missing data, not just future writes
+   - Why not required now: Approved fix only covers new events going forward; backfill is a broader product/operational change with larger blast radius
 
 ### Recommendations
 - Add progress reporting for user experience

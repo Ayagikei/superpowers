@@ -118,18 +118,28 @@ Vague name, tests mock not code
 
 **MANDATORY. Never skip.**
 
+**Hard rule:** For behavior changes and business-logic changes, RED means the test runs and fails on the expected behavior. A compile error, import error, syntax error, broken test harness, or crashed test runner does **not** count as RED.
+
+**Only exception:** If the task itself is to fix compilation, imports, or the test environment/harness, then reproducing that exact failure is a valid RED state.
+
 ```bash
 npm test path/to/test.test.ts
 ```
 
 Confirm:
-- Test fails (not errors)
+- Test fails for the expected reason (not random errors)
 - Failure message is expected
-- Fails because feature missing (not typos)
+- Fails because the target behavior is missing/wrong (not typos, not broken setup)
+
+| Task type | Valid RED | Not valid RED |
+|-----------|-----------|---------------|
+| Behavior / business-rule change | Assertion failure, wrong output, wrong state, missing exception, unexpected exception | Compile error, import error, syntax error, test bootstrap failure |
+| Fix compile / import issue | The target compile/import failure reproduces | Unrelated assertion failure that doesn't represent the real problem |
+| Fix test harness / fixture / environment | The target setup/bootstrap failure reproduces | A behavior assertion failure unrelated to the harness problem |
 
 **Test passes?** You're testing existing behavior. Fix test.
 
-**Test errors?** Fix error, re-run until it fails correctly.
+**Test errors?** If the task is a behavior or logic change, fix the error first and re-run until you get the expected behavior failure. If the task is specifically to fix that compile/import/harness error, that error is the RED state.
 
 ### GREEN - Minimal Code
 
@@ -272,6 +282,7 @@ Tests-first force edge case discovery before implementing. Tests-after verify yo
 | "TDD will slow me down" | TDD faster than debugging. Pragmatic = test-first. |
 | "Manual test faster" | Manual doesn't prove edge cases. You'll re-test every change. |
 | "Existing code has no tests" | You're improving it. Add tests for existing code. |
+| "The test doesn't compile, so RED is satisfied" | Only when the task is to fix compilation/imports/test harness itself. For behavior changes, you still need a running test with a behavior failure. |
 
 ## Red Flags - STOP and Start Over (When TDD Applies)
 
@@ -287,6 +298,7 @@ Tests-first force edge case discovery before implementing. Tests-after verify yo
 - "Keep as reference" or "adapt existing code"
 - "Already spent X hours, deleting is wasteful"
 - "TDD is dogmatic, I'm being pragmatic"
+- Treating compile/import/test-runner failure as RED for a behavior change
 - "This is different because..."
 
 **All of these mean: Delete code. Start over with TDD.**
@@ -334,7 +346,7 @@ When TDD applies, before marking work complete:
 
 - [ ] Every new function/method has a test
 - [ ] Watched each test fail before implementing
-- [ ] Each test failed for expected reason (feature missing, not typo)
+- [ ] Each RED state matched the task: behavior failure for behavior changes, or the target compile/import/harness failure for infrastructure fixes
 - [ ] Wrote minimal code to pass each test
 - [ ] All tests pass
 - [ ] Output pristine (no errors, warnings)

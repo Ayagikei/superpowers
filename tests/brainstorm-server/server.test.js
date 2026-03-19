@@ -15,7 +15,7 @@ const fs = require('fs');
 const path = require('path');
 const assert = require('assert');
 
-const SERVER_PATH = path.join(__dirname, '../../skills/brainstorming/scripts/server.js');
+const SERVER_PATH = path.join(__dirname, '../../skills/brainstorming/scripts/server.cjs');
 const TEST_PORT = 3334;
 const TEST_DIR = '/tmp/brainstorm-test';
 
@@ -118,7 +118,7 @@ async function runTests() {
     await test('serves waiting page when no screens exist', async () => {
       const res = await fetch(`http://localhost:${TEST_PORT}/`);
       assert.strictEqual(res.status, 200);
-      assert(res.body.includes('Waiting for Claude'), 'Should show waiting message');
+      assert(res.body.includes('Waiting for the agent'), 'Should show waiting message');
     });
 
     await test('injects helper.js into waiting page', async () => {

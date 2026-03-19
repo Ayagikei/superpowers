@@ -33,7 +33,7 @@ BEFORE claiming any status or expressing satisfaction:
 4. VERIFY: Does output confirm the claim?
    - If NO: State actual status with evidence
    - If YES: Continue to presentation
-5. PRESENT: Output a visible `Verification Scorecard` and `Verification Summary`
+5. PRESENT: Output a visible verification scorecard and summary in the user's language
 6. ONLY THEN: Make the claim
 
 Skip any step = lying, not verifying
@@ -41,28 +41,32 @@ Skip any step = lying, not verifying
 
 ## Required User-Facing Output
 
-Before any completion claim, ready-to-commit statement, or merge recommendation, you MUST output these two sections for the user:
+Before any completion claim, ready-to-commit statement, or merge recommendation, you MUST output these two sections for the user, localized to the user's language:
 
 ```markdown
-## Verification Scorecard
+## [Localized Scorecard Title]
 
-| Check | Blocking | Command / Method | Fresh Evidence | Result |
+| [Localized Check Label] | [Localized Blocking Label] | [Localized Command / Method Label] | [Localized Fresh Evidence Label] | [Localized Result Label] |
 |---|---|---|---|---|
-| Build | Yes | `scripts/build-ios.sh --ios-only` | exit 0 | ✅ Pass |
-| Repro Fix | Yes | Mobile MCP | screenshot path / observed behavior | ✅ Pass |
-| Scope Check | Yes | `git diff --stat` | changed files list | ✅ Pass |
-| Optional Regression | No | targeted scenario | not run | ⏳ Not Run |
+| [Localized Build Label] | [Localized Yes] | `scripts/build-ios.sh --ios-only` | exit 0 | ✅ [Localized Pass] |
+| [Localized Repro Fix Label] | [Localized Yes] | Mobile MCP | screenshot path / observed behavior | ✅ [Localized Pass] |
+| [Localized Scope Check Label] | [Localized Yes] | `git diff --stat` | changed files list | ✅ [Localized Pass] |
+| [Localized Optional Regression Label] | [Localized No] | targeted scenario | not run | ⏳ [Localized Not Run] |
 
-## Verification Summary
+## [Localized Summary Title]
 
-- Blocking checks: 3/3 passed
-- Non-blocking checks: 0/1 passed
-- Ready to commit: Yes
-- Remaining gaps: None
+- [Localized Blocking Summary Label]: 3/3 passed
+- [Localized Non-Blocking Summary Label]: 0/1 passed
+- [Localized Ready-to-Commit Label]: Yes
+- [Localized Remaining Gaps Label]: None
 ```
 
 Rules:
-- Use the exact section titles: `Verification Scorecard` and `Verification Summary`
+- Localize section titles, column headers, result labels, and summary bullets to the user's language
+- Examples of valid localized titles:
+  - English: `Verification Scorecard` / `Verification Summary`
+  - Chinese: `验证评分表` / `验证汇总`
+- The exact wording may vary by language, but the output must clearly contain two distinct sections: a scorecard and a summary
 - Adapt the rows to the task, but always include every blocking check that gates your claim
 - If any blocking check is `❌ Fail` or `⏳ Not Run`, then `Ready to commit` / `Ready to merge` MUST be `No`
 - If a check is not applicable, say so explicitly instead of silently omitting the gate

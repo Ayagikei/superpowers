@@ -7,177 +7,240 @@ description: Use when about to claim work is complete, fixed, passing, or ready 
 
 ## Overview
 
-Claiming work is complete without verification is dishonesty, not efficiency.
+This skill has **two gates**:
 
-**Core principle:** Evidence before claims, always.
+1. **Claim Gate** — fresh evidence before any success claim
+2. **Commit / Merge Gate** — a visible readiness panel before commit, PR, or merge
 
-**Violating the letter of this rule is violating the spirit of this rule.**
+**Core principle:** evidence before claims, readiness before submission.
 
 ## The Iron Law
 
 ```
 NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE
+NO READY-TO-COMMIT / READY-TO-MERGE CLAIMS WITHOUT A VISIBLE READINESS PANEL
 ```
 
-If you haven't run the verification command in this message, you cannot claim it passes.
-If you haven't shown the user a visible verification scorecard and summary, you cannot claim the work is complete, fixed, ready to commit, or ready to merge.
+If you have not run the proving command in this message, do not claim success.
+If you have not shown the user a short scorecard plus summary, do not recommend commit / PR / merge.
 
-## The Gate Function
+## Gate 1: Claim Verification
 
-```
-BEFORE claiming any status or expressing satisfaction:
+Before saying work is complete, fixed, or passing:
 
-1. IDENTIFY: What command proves this claim?
-2. RUN: Execute the FULL command (fresh, complete)
-3. READ: Full output, check exit code, count failures
-4. VERIFY: Does output confirm the claim?
-   - If NO: State actual status with evidence
-   - If YES: Continue to presentation
-5. PRESENT: Output a visible verification scorecard and summary in the user's language
-6. ONLY THEN: Make the claim
+1. **IDENTIFY** the exact command or method that proves the claim
+2. **RUN** it fresh
+3. **READ** full output, exit code, failures, and missing coverage
+4. **REPORT** the actual result with evidence
 
-Skip any step = lying, not verifying
-```
+Skip any step = not verified.
+
+## Gate 2: Commit / Merge Readiness
+
+Before commit, PR, or merge:
+
+1. Decide which checks are **applicable**
+2. Run the applicable checks
+3. Classify each check as **Hard Gate**, **Conditional**, or **Bonus**
+4. Show the user a **readiness scorecard** and **summary**
+5. If any applicable **Hard Gate** is missing or failed, `Ready to commit / merge` must be **No**
+6. Stop unless the user gives an **explicit override**
+
+## Default Check Matrix
+
+Use these defaults unless the project has a stricter rule.
+
+| Check | Level | Applies When | Expected Evidence |
+|---|---|---|---|
+| Independent code review via `requesting-code-review` | Hard Gate | Most code changes | reviewer result |
+| Review disposition (fixed / deferred / rejected with reason) | Hard Gate | Review returned findings | short disposition list |
+| Automated tests / regression | Conditional | Tests exist, logic changed, or bugfix touched covered code | fresh test output |
+| New or updated automated tests | Conditional | New behavior or logic fix where tests are practical | added test + fresh pass |
+| Testcase / usecase doc update and status | Conditional | User-facing flow, QA handoff, release validation, or manual acceptance tracking | doc path + updated status |
+| Mobile diff review via `mobile-diff-review` | Conditional | iOS / Android / KMP diff | review result |
+| Mobile MCP acceptance via `ios-simulator-mobile-mcp` / `android-mobile-mcp` | Conditional | Client UI / flow change and simulator or emulator validation is practical | screenshot / evidence path |
+| Automated UI / acceptance flow | Bonus by default | Existing suite exists or automation is practical | fresh run output |
+
+Notes:
+- `requesting-code-review` is the default review workflow. If the current environment cannot run subagents, say so explicitly and treat review as a **missing Hard Gate** unless the user overrides it.
+- For testcase docs, use project convention first. If the project uses an Ulives-style release checklist, use `test-case-summary-ulives`.
+- `Mobile MCP` is **not** a universal blocker. Only mark it applicable for real client validation scenarios.
+
+## Readiness Profiles
+
+Use these profiles to decide applicability faster. They do **not** override stricter project rules.
+
+| Change Type | Default Hard Gates | Common Conditionals | Usually N/A |
+|---|---|---|---|
+| Docs-only / copy-only | review, disposition | testcase doc status | tests, Mobile MCP |
+| Backend / CLI / automation | review, disposition | tests, new tests, testcase doc | Mobile MCP |
+| Web UI / frontend flow | review, disposition | tests, testcase doc, UI automation | Mobile MCP |
+| Mobile client logic | review, disposition | tests, new tests, mobile diff review | — |
+| Mobile client user flow | review, disposition | tests, testcase doc, mobile diff review, Mobile MCP | — |
+
+Profile rules:
+- `review` means `requesting-code-review`
+- `disposition` means every meaningful review finding is marked `fixed`, `deferred`, or `rejected with reason`
+- If a profile says a check is common, still mark it `No` / `N/A` explicitly when not practical
 
 ## Required User-Facing Output
 
-Before any completion claim, ready-to-commit statement, or merge recommendation, you MUST output these two sections for the user, localized to the user's language:
+Before any completion claim, ready-to-commit statement, or merge recommendation, output these two sections in the user's language:
 
 ```markdown
-## [Localized Scorecard Title]
+## [Localized Readiness Scorecard Title]
 
-| [Localized Check Label] | [Localized Blocking Label] | [Localized Command / Method Label] | [Localized Fresh Evidence Label] | [Localized Result Label] |
-|---|---|---|---|---|
-| [Localized Build Label] | [Localized Yes] | `scripts/build-ios.sh --ios-only` | exit 0 | ✅ [Localized Pass] |
-| [Localized Repro Fix Label] | [Localized Yes] | Mobile MCP | screenshot path / observed behavior | ✅ [Localized Pass] |
-| [Localized Scope Check Label] | [Localized Yes] | `git diff --stat` | changed files list | ✅ [Localized Pass] |
-| [Localized Optional Regression Label] | [Localized No] | targeted scenario | not run | ⏳ [Localized Not Run] |
+| [Localized Check] | [Localized Level] | [Localized Applies] | [Localized Status] | [Localized Evidence] | [Localized Gap] |
+|---|---|---|---|---|---|
+| Code review | Hard | Yes | ✅ | review done | None |
+| Review fixes | Hard | Yes | ⚠️ | 1 deferred | 1 item |
+| Tests | Conditional | Yes | ✅ | 38/38 | None |
+| Testcase doc | Conditional | No | N/A | — | Not needed |
+| Mobile MCP | Conditional | Yes | ⏳ | not run | simulator check |
+| UI automation | Bonus | No | N/A | — | Not needed |
 
-## [Localized Summary Title]
+## [Localized Readiness Summary Title]
 
-- [Localized Blocking Summary Label]: 3/3 passed
-- [Localized Non-Blocking Summary Label]: 0/1 passed
-- [Localized Ready-to-Commit Label]: Yes
-- [Localized Remaining Gaps Label]: None
+- [Localized Robustness Score]: 78/100
+- [Localized Hard Gates]: 1/2 passed
+- [Localized Conditional Checks]: 1/2 passed
+- [Localized Bonus Checks]: 0/1 passed
+- [Localized Ready to Commit / Merge]: No
+- [Localized Key Gaps]:
+  - Mobile MCP acceptance not run
+  - 1 review item deferred
+- [Localized Override Phrase]: "I accept the risk of skipping Mobile MCP and the deferred review item; continue to commit"
 ```
 
 Rules:
-- Localize section titles, column headers, result labels, and summary bullets to the user's language
-- Examples of valid localized titles:
-  - English: `Verification Scorecard` / `Verification Summary`
-  - Chinese: `验证评分表` / `验证汇总`
-- The exact wording may vary by language, but the output must clearly contain two distinct sections: a scorecard and a summary
-- Adapt the rows to the task, but always include every blocking check that gates your claim
-- If any blocking check is `❌ Fail` or `⏳ Not Run`, then `Ready to commit` / `Ready to merge` MUST be `No`
-- If a check is not applicable, say so explicitly instead of silently omitting the gate
-- Do not hide verification inside prose when a visible scorecard is required
+- **Keep table cells short.** Use the table for terse state only. Put long explanations, rationale, and risk detail in summary bullets below the table.
+- `Applies` should be one of: `Yes`, `No`, `N/A`
+- `Status` should be short: `✅ Pass`, `❌ Fail`, `⏳ Not Run`, `⚠️ Override`, `N/A`
+- If a check is not applicable, say so explicitly instead of silently omitting it
+- If any applicable Hard Gate is `❌ Fail` or `⏳ Not Run`, then `Ready to commit / merge` must be `No`
+- A user override may change the final recommendation, but only after the explicit override protocol below
+- Score is advisory; missing applicable Hard Gates still default to **Not Ready**
+
+## Scoring Standard
+
+Use this default weighting unless the project defines its own:
+
+| Level | Weight |
+|---|---|
+| Hard Gate | 5 |
+| Conditional | 3 |
+| Bonus | 1 |
+
+Scoring rules:
+- `Pass` = full weight
+- `Fail`, `Not Run`, `Override` = 0
+- `N/A` rows are excluded from the denominator
+- `Robustness Score = earned_weight / applicable_weight * 100`, rounded to the nearest integer
+- Missing applicable Hard Gates still mean **Not Ready**, even if the score looks decent
+
+Suggested bands:
+- `90-100` Strong
+- `75-89` Good with minor gaps
+- `60-74` Risky, user should review gaps carefully
+- `<60` Not ready
+
+## Explicit Override Protocol
+
+Hard Gates are default blockers, but the user may override them.
+
+**Valid override requirements:**
+- The user must explicitly accept the risk
+- The user must clearly say they still want to commit / PR / merge
+- The override must mention the missing Hard Gate(s), either individually or as an explicit list
+
+**Valid examples:**
+- `我接受未做子代理 review 的风险，继续提交`
+- `I accept the risk of skipping code review and deferred fixes; continue with the PR`
+
+**Invalid examples:**
+- `直接提吧`
+- `ship it`
+- `应该没问题`
+
+After a valid override:
+1. Echo back the overridden checks
+2. Echo back the accepted risks
+3. Mark those rows as `⚠️ Override`
+4. Then proceed only with the action the user approved
 
 ## Common Failures
 
 | Claim | Requires | Not Sufficient |
 |-------|----------|----------------|
-| Tests pass | Test command output: 0 failures | Previous run, "should pass" |
-| Linter clean | Linter output: 0 errors | Partial check, extrapolation |
-| Build succeeds | Build command: exit 0 | Linter passing, logs look good |
-| Bug fixed | Test original symptom: passes | Code changed, assumed fixed |
-| Regression test works | Red-green cycle verified | Test passes once |
-| Agent completed | VCS diff shows changes | Agent reports "success" |
-| Requirements met | Line-by-line checklist | Tests passing |
-| Ready to commit | Visible scorecard + summary with all blocking checks passed | "Build and MCP passed" in prose |
+| Tests pass | Fresh test output: 0 failures | Previous run, "should pass" |
+| Bug fixed | Repro or regression evidence | Code changed, assumed fixed |
+| Review complete | Reviewer output + disposition of findings | "I looked at the diff myself" |
+| Mobile flow verified | Mobile MCP evidence or explicit N/A | "UI seems fine" |
+| Testcase docs updated | Doc path + updated status | "Will update later" |
+| Ready to commit | Visible scorecard + summary + applicable Hard Gates passed or explicitly overridden | "Build and MCP passed" in prose |
 
 ## Red Flags - STOP
 
-- Using "should", "probably", "seems to"
-- Expressing satisfaction before verification ("Great!", "Perfect!", "Done!", etc.)
-- About to commit/push/PR without verification
-- Trusting agent success reports
-- Relying on partial verification
-- Running checks but not showing a visible scorecard
-- Thinking "just this once"
-- Tired and wanting work over
-- **ANY wording implying success without having run verification**
+- Using "should", "probably", or "seems to"
+- About to commit / push / PR without a readiness panel
+- Treating every check as universally applicable
+- Showing a table but hiding the real gaps in prose
+- Assuming user intent to override from urgency alone
+- Trusting agent success reports without independent verification
 
 ## Rationalization Prevention
 
 | Excuse | Reality |
 |--------|---------|
-| "Should work now" | RUN the verification |
-| "I'm confident" | Confidence ≠ evidence |
-| "Just this once" | No exceptions |
-| "Linter passed" | Linter ≠ compiler |
-| "Agent said success" | Verify independently |
-| "I'm tired" | Exhaustion ≠ excuse |
-| "Partial check is enough" | Partial proves nothing |
-| "I already mentioned the checks in prose" | Completion claims require a visible scorecard + summary |
+| "I already showed a scorecard" | A scorecard without the right checks is still incomplete |
+| "Mobile MCP doesn't matter here" | Mark it `N/A` explicitly and say why |
+| "Review is implied" | Hard Gates must be visible, not implied |
+| "User said hurry" | Hurry is not an override |
+| "The table would be too long" | Keep cells short; move detail to summary bullets |
 | "Different words so rule doesn't apply" | Spirit over letter |
 
-## Key Patterns
+## Short Examples
 
-**Tests:**
-```
-✅ [Run test command] [See: 34/34 pass] "All tests pass"
-❌ "Should pass now" / "Looks correct"
-```
+**Example A: Backend bugfix**
 
-**Regression tests (TDD Red-Green):**
-```
-✅ Write → Run (pass) → Revert fix → Run (MUST FAIL) → Restore → Run (pass)
-❌ "I've written a regression test" (without red-green verification)
-```
+```markdown
+## 验证评分表
 
-**Build:**
-```
-✅ [Run build] [See: exit 0] "Build passes"
-❌ "Linter passed" (linter doesn't check compilation)
-```
+| 检查项 | 级别 | 适用 | 状态 | 证据 | 缺口 |
+|---|---|---|---|---|---|
+| Code review | Hard | Yes | ✅ | review ok | None |
+| Review fixes | Hard | Yes | ✅ | all fixed | None |
+| Tests | Conditional | Yes | ✅ | 12/12 | None |
+| Testcase doc | Conditional | No | N/A | — | Not needed |
 
-**User-facing completion / commit recommendation:**
-```
-✅ [Verification Scorecard] [Verification Summary] "Ready to commit: Yes"
-❌ "Build + MCP passed, ready to commit"
+## 验证汇总
+
+- 稳健度评分：100/100
+- 可提交：Yes
+- 关键缺口：None
 ```
 
-**Requirements:**
+**Example B: Mobile UI flow**
+
+```markdown
+## 验证评分表
+
+| 检查项 | 级别 | 适用 | 状态 | 证据 | 缺口 |
+|---|---|---|---|---|---|
+| Code review | Hard | Yes | ✅ | review ok | None |
+| Review fixes | Hard | Yes | ⚠️ | 1 deferred | 1 item |
+| Mobile diff review | Conditional | Yes | ✅ | review ok | None |
+| Mobile MCP | Conditional | Yes | ⏳ | not run | simulator |
+
+## 验证汇总
+
+- 稳健度评分：50/100
+- 可提交：No
+- 关键缺口：
+  - Mobile MCP 未执行
+  - 1 条 review 建议延后
 ```
-✅ Re-read plan → Create checklist → Verify each → Report gaps or completion
-❌ "Tests pass, phase complete"
-```
-
-**Agent delegation:**
-```
-✅ Agent reports success → Check VCS diff → Verify changes → Report actual state
-❌ Trust agent report
-```
-
-## Why This Matters
-
-From 24 failure memories:
-- your human partner said "I don't believe you" - trust broken
-- Undefined functions shipped - would crash
-- Missing requirements shipped - incomplete features
-- Time wasted on false completion → redirect → rework
-- Violates: "Honesty is a core value. If you lie, you'll be replaced."
-
-## When To Apply
-
-**ALWAYS before:**
-- ANY variation of success/completion claims
-- ANY expression of satisfaction
-- ANY positive statement about work state
-- Committing, PR creation, task completion
-- Moving to next task
-- Delegating to agents
-
-**Rule applies to:**
-- Exact phrases
-- Paraphrases and synonyms
-- Implications of success
-- ANY communication suggesting completion/correctness
 
 ## The Bottom Line
 
-**No shortcuts for verification.**
-
-Run the command. Read the output. Show the scorecard. Show the summary. THEN claim the result.
-
-This is non-negotiable.
+Run the checks. Read the output. Show a short scorecard. Show a clear summary. Stop on missing Hard Gates unless the user explicitly accepts the risk.

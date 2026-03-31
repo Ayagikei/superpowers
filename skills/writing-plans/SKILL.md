@@ -128,10 +128,20 @@ git commit -m "feat: add specific feature"
 
 After writing the complete plan:
 
-1. Dispatch a single plan-document-reviewer subagent (see plan-document-reviewer-prompt.md) with precisely crafted review context — never your session history. This keeps the reviewer focused on the plan, not your thought process.
+1. Classify the work:
+   - **Lightweight:** a narrowly scoped tweak, small UI/content adjustment, or similarly bounded work where the plan is short and the expected implementation diff is modest
+   - **Heavy:** a new feature, broad refactor, multi-file coordination, architecture-sensitive work, or anything where an independent reviewer materially reduces planning risk
+2. If **Heavy**, independent plan review is the default:
+   - Dispatch a single plan-document-reviewer subagent (see plan-document-reviewer-prompt.md) with precisely crafted review context — never your session history
    - Provide: path to the plan document, path to spec document
-2. If ❌ Issues Found: fix the issues, re-dispatch reviewer for the whole plan
-3. If ✅ Approved: proceed to execution handoff
+   - If the harness requires explicit authorization before spawning subagents, ask for that authorization instead of silently skipping the reviewer
+   - If the user declines that reviewer authorization, stop and ask whether they want to proceed with the independent reviewer gate explicitly skipped for this heavy task
+   - If ❌ Issues Found: fix the issues, re-dispatch reviewer for the whole plan
+   - If ✅ Approved: proceed to execution handoff
+3. If **Lightweight**, ask the user whether to run the reviewer subagent or keep the planning flow lean:
+   - If user wants review, dispatch the reviewer subagent
+   - If user declines, do one careful local review yourself and explicitly note that the independent reviewer gate was skipped by user choice before handoff
+4. Never present a local self-review as equivalent to an independent reviewer pass
 
 **Review loop guidance:**
 - Same agent that wrote the plan fixes it (preserves context)

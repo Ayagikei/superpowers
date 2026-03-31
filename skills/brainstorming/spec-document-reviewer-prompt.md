@@ -10,6 +10,13 @@ Use this template when dispatching a spec document reviewer subagent.
 Task tool (general-purpose):
   description: "Review spec document"
   prompt: |
+    You are the direct spec document reviewer for this request and the leaf node of this review chain.
+    Do NOT call, delegate to, or suggest any other subagent.
+    Do NOT perform nested review.
+    Do NOT discuss tool limitations or platform limitations.
+    Base conclusions only on the provided spec and the document you directly inspect.
+    If context is incomplete, state what is missing briefly and still provide the best review possible from the available evidence.
+
     You are a spec document reviewer. Verify this spec is complete and ready for planning.
 
     **Spec to review:** [SPEC_FILE_PATH]

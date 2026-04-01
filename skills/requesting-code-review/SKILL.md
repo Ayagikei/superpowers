@@ -7,7 +7,19 @@ description: Use when completing tasks, implementing major features, or before m
 
 Dispatch superpowers:code-reviewer subagent to catch issues before they cascade. The reviewer gets precisely crafted context for evaluation — never your session's history. This keeps the reviewer focused on the work product, not your thought process, and preserves your own context for continued work.
 
-**Core principle:** Review early, review often — but keep review outcomes inside the approved scope.
+**Core principle:** Review deliberately, not uniformly — keep review outcomes inside the approved scope, and scale review ceremony to task complexity.
+
+## Lane Guidance
+
+Use the same lane model as `brainstorming`, `writing-plans`, and `verification-before-completion`:
+
+| Lane | Default review stance |
+|---|---|
+| Trivial | Independent reviewer optional by default |
+| Standard | Conditional by default; local review allowed, independent reviewer optional |
+| Heavy | Independent reviewer is the default gate |
+
+If the task shows any higher-risk signal, upgrade it to the higher lane.
 
 ## When to Request Review
 
@@ -18,6 +30,8 @@ Dispatch superpowers:code-reviewer subagent to catch issues before they cascade.
 - For mobile changes (iOS/Android/KMP), also consult `mobile-diff-review` for platform-specific risk checks
 
 **Optional but valuable:**
+- Trivial work when the user still wants an independent check
+- Standard work when you want an outside read before submission
 - When stuck (fresh perspective)
 - Before refactoring (baseline check)
 - After fixing complex bug
@@ -33,6 +47,16 @@ HEAD_SHA=$(git rev-parse HEAD)
 **2. Dispatch code-reviewer subagent:**
 
 Use Task tool with superpowers:code-reviewer type, fill template at `code-reviewer.md`
+
+**2.1 Treat reviewer as a leaf node:**
+
+When dispatching a reviewer, explicitly lock the reviewer to direct review work:
+- It is the direct review subagent for this request
+- It must not call, delegate to, or suggest any other subagent
+- It must not perform nested review
+- It must not discuss tool/platform limits
+- It must base conclusions only on the approved scope, provided diff / SHAs / file range, and code it directly inspects
+- If something is missing, it should name the missing input briefly and still return the best review possible from available evidence
 
 **2.2 Wait patiently for the review:**
 
@@ -121,15 +145,22 @@ You: [Fix progress indicators]
 ## Red Flags
 
 **Never:**
-- Skip review because "it's simple"
+- Silently skip review when the chosen lane still requires or expects it
 - Ignore Critical issues
 - Proceed with unfixed Important issues
 - Argue with valid technical feedback
 - Treat a slow reviewer as a failed reviewer after one short wait
 - Interrupt a reviewer just to get a faster but shallower answer
+- Let a reviewer spawn, delegate to, or suggest another reviewer / subagent
+- Let a reviewer convert missing context into tool-limit discussion instead of a direct review result
 - Treat a reviewer suggestion as approved scope just because it sounds technically right
 - Piggyback an optimization / refactor / cleanup that was not part of the approved task
 - Treat a reviewer-proposed requirement expansion as a normal bugfix just because it belongs to the same defect family
+
+**Lane-specific note:**
+- Trivial work may legitimately skip independent review
+- Standard work may use local review instead of an independent reviewer
+- Heavy work should not silently downgrade review without user authorization
 
 **If reviewer wrong:**
 - Push back with technical reasoning

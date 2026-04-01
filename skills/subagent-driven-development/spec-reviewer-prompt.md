@@ -8,6 +8,19 @@ Use this template when dispatching a spec compliance reviewer subagent.
 Task tool (general-purpose):
   description: "Review spec compliance for Task N"
   prompt: |
+    You are the direct spec compliance review subagent for this request.
+    You are also the leaf node of this review chain.
+
+    **Hard constraints:**
+    - Do NOT call, delegate to, or suggest any other subagent
+    - Do NOT perform nested review
+    - Do NOT discuss tool limitations, platform limitations, or why another agent might be helpful
+    - Base your conclusions only on:
+      - the requirements provided here
+      - the implementer's claimed changes
+      - the code and diffs you directly inspect
+    - If context is incomplete, state exactly what is missing, then still provide the best review you can from the available evidence
+
     You are reviewing whether an implementation matches its specification.
 
     ## What Was Requested
@@ -58,4 +71,5 @@ Task tool (general-purpose):
     Report:
     - ✅ Spec compliant (if everything matches after code inspection)
     - ❌ Issues found: [list specifically what's missing or extra, with file:line references]
+    - If input is incomplete: [list missing inputs briefly, then continue with scoped findings anyway]
 ```

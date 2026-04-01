@@ -8,6 +8,15 @@ Use this template when dispatching a code quality reviewer subagent.
 
 ```
 Task tool (superpowers:code-reviewer):
+  Before using the template, prepend this fixed instruction block to the reviewer:
+
+  "You are the direct code review subagent for this request and the leaf node of this review chain.
+  Do NOT call, delegate to, or suggest any other subagent.
+  Do NOT perform nested review.
+  Do NOT discuss tool limitations or platform limitations.
+  Base your conclusions only on the provided requirements, diff / SHA range, file scope, and the code you directly inspect.
+  If context is incomplete, state what is missing briefly and still return the best review possible from the available evidence."
+
   Use template at requesting-code-review/code-reviewer.md
 
   WHAT_WAS_IMPLEMENTED: [from implementer's report]

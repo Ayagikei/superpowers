@@ -39,88 +39,120 @@ Skip any step = not verified.
 
 Before commit, PR, or merge:
 
-1. Decide which checks are **applicable**
-2. Run the applicable checks
-3. Classify each check as **Hard Gate**, **Conditional**, or **Bonus**
-4. Show the user a **readiness scorecard** and **summary**
-5. If any applicable **Hard Gate** is missing or failed, `Ready to commit / merge` must be **No**
-6. Stop unless the user gives an **explicit override**
+1. Classify the task lane: **trivial / standard / heavy**
+2. Decide which checks are **applicable**
+3. Decide which checks are **Hard Gate**, **Conditional**, or **Optional by lane**
+4. Run the applicable checks
+5. Show the user a **readiness panel** scaled to the lane
+6. If any applicable **Hard Gate** is missing or failed, `Ready to commit / merge` must be **No**
+7. Stop unless the user gives an **explicit authorization override**
+
+## Graduated Readiness Lanes
+
+| Lane | Review default | Readiness output | Typical use |
+|---|---|---|---|
+| Trivial | independent review optional by default | lightweight panel | copy tweaks, narrow UI polish, tiny low-risk fixes |
+| Standard | independent review conditional by default; local review allowed | short scorecard | bounded multi-file or low-risk behavior changes |
+| Heavy | independent review hard by default | full scorecard | broad, risky, or architecture-sensitive work |
+
+If the work shows any higher-risk signal, upgrade it to that lane before applying readiness rules.
 
 ## Default Check Matrix
 
 Use these defaults unless the project has a stricter rule.
 
-| Check | Level | Applies When | Expected Evidence |
+| Check | Default Level by Lane | Applies When | Expected Evidence |
 |---|---|---|---|
-| Independent code review via `requesting-code-review` | Hard Gate | Most code changes | reviewer result |
-| Review disposition (fixed / deferred / rejected with reason) | Hard Gate | Review returned findings | short disposition list |
+| Independent code review via `requesting-code-review` | Trivial: Optional / Standard: Conditional / Heavy: Hard Gate | Most code changes | reviewer result |
+| Review disposition for all review streams (fixed / deferred / rejected with reason) | Trivial: Only if review ran / Standard: Conditional / Heavy: Hard Gate | Any review returned findings | short disposition list |
 | Automated tests / regression | Conditional | Tests exist, logic changed, or bugfix touched covered code | fresh test output |
 | New or updated automated tests | Conditional | New behavior or logic fix where tests are practical | added test + fresh pass |
-| Testcase / usecase doc update and status | Conditional | User-facing flow, QA handoff, release validation, or manual acceptance tracking | doc path + updated status |
+| TDD flow followed via `test-driven-development` | Conditional by default | Logic-heavy behavior, repository/domain work, or bugfix where tests are practical | failing test + fresh pass |
+| Testcase backfill / usecase update and status | Conditional | Client app feature iteration, user-facing flow, QA handoff, release validation, or manual acceptance tracking | doc path + updated cases/status |
 | Mobile diff review via `mobile-diff-review` | Conditional | iOS / Android / KMP diff | review result |
 | Mobile MCP acceptance via `ios-simulator-mobile-mcp` / `android-mobile-mcp` | Conditional | Client UI / flow change and simulator or emulator validation is practical | screenshot / evidence path |
 | Automated UI / acceptance flow | Bonus by default | Existing suite exists or automation is practical | fresh run output |
 
 Notes:
-- `requesting-code-review` is the default review workflow. If the current environment cannot run subagents, say so explicitly and treat review as a **missing Hard Gate** unless the user overrides it.
-- For testcase docs, use project convention first. If the project uses an Ulives-style release checklist, use `test-case-summary-ulives`.
+- `requesting-code-review` is the default independent review workflow when the chosen lane requires or benefits from it.
+- `Review disposition` covers findings from `requesting-code-review`, `mobile-diff-review`, and any other explicit review stream you asked an agent to run.
+- When TDD applies, use `test-driven-development`. If the project or user explicitly required TDD, upgrade this check from **Conditional** to **Hard Gate**.
+- For testcase docs / backfill, use project convention first. If a structured checklist needs to be drafted or backfilled, use `test-case-summary` and adapt it to any project-specific house style.
+- For client app feature iteration, prefer marking testcase backfill as applicable unless there is a clear reason it does not exist in the team's workflow.
 - `Mobile MCP` is **not** a universal blocker. Only mark it applicable for real client validation scenarios.
 
-## Readiness Profiles
+## Change-Type Heuristics
 
-Use these profiles to decide applicability faster. They do **not** override stricter project rules.
+Use these heuristics to choose the lane faster:
 
-| Change Type | Default Hard Gates | Common Conditionals | Usually N/A |
-|---|---|---|---|
-| Docs-only / copy-only | review, disposition | testcase doc status | tests, Mobile MCP |
-| Backend / CLI / automation | review, disposition | tests, new tests, testcase doc | Mobile MCP |
-| Web UI / frontend flow | review, disposition | tests, testcase doc, UI automation | Mobile MCP |
-| Mobile client logic | review, disposition | tests, new tests, mobile diff review | — |
-| Mobile client user flow | review, disposition | tests, testcase doc, mobile diff review, Mobile MCP | — |
-
-Profile rules:
-- `review` means `requesting-code-review`
-- `disposition` means every meaningful review finding is marked `fixed`, `deferred`, or `rejected with reason`
-- If a profile says a check is common, still mark it `No` / `N/A` explicitly when not practical
+| Change Type | Default Lane | Notes |
+|---|---|---|
+| Docs-only / copy-only / tiny UI polish | Trivial | upgrade if the change affects rules, flows, or multiple surfaces |
+| Bounded feature adjustment / small multi-file change | Standard | local review may be enough |
+| New feature / broad refactor / state-flow change | Heavy | keep the strongest default gates |
 
 ## Required User-Facing Output
 
-Before any completion claim, ready-to-commit statement, or merge recommendation, output these two sections in the user's language:
+Before any completion claim, ready-to-commit statement, or merge recommendation, output a readiness panel in the user's language:
+
+- **Trivial:** lightweight panel
+- **Standard:** short scorecard + summary
+- **Heavy:** full scorecard + summary
+
+For standard/heavy work, keep the scorecard structure below:
 
 ```markdown
 ## [Localized Readiness Scorecard Title]
 
 | [Localized Check] | [Localized Level] | [Localized Applies] | [Localized Status] | [Localized Evidence] | [Localized Gap] |
 |---|---|---|---|---|---|
-| Code review | Hard | Yes | ✅ | review done | None |
-| Review fixes | Hard | Yes | ⚠️ | 1 deferred | 1 item |
+| Code review | Hard / Conditional / Optional | Yes | ✅ | review done | None |
+| Review fixes | Hard / Conditional | Yes | ⚠️ | 1 deferred | 1 item |
 | Tests | Conditional | Yes | ✅ | 38/38 | None |
-| Testcase doc | Conditional | No | N/A | — | Not needed |
+| Testcase backfill | Conditional | No | N/A | — | Not needed |
 | Mobile MCP | Conditional | Yes | ⏳ | not run | simulator check |
 | UI automation | Bonus | No | N/A | — | Not needed |
 
 ## [Localized Readiness Summary Title]
 
 - [Localized Robustness Score]: 78/100
-- [Localized Hard Gates]: 1/2 passed
-- [Localized Conditional Checks]: 1/2 passed
-- [Localized Bonus Checks]: 0/1 passed
 - [Localized Ready to Commit / Merge]: No
 - [Localized Key Gaps]:
   - Mobile MCP acceptance not run
   - 1 review item deferred
-- [Localized Override Phrase]: "I accept the risk of skipping Mobile MCP and the deferred review item; continue to commit"
 ```
 
 Rules:
-- **Keep table cells short.** Use the table for terse state only. Put long explanations, rationale, and risk detail in summary bullets below the table.
-- `Applies` should be one of: `Yes`, `No`, `N/A`
-- `Status` should be short: `✅ Pass`, `❌ Fail`, `⏳ Not Run`, `⚠️ Override`, `N/A`
+- Keep table cells short; move detail to summary bullets
 - If a check is not applicable, say so explicitly instead of silently omitting it
-- If any applicable Hard Gate is `❌ Fail` or `⏳ Not Run`, then `Ready to commit / merge` must be `No`
-- A user override may change the final recommendation, but only after the explicit override protocol below
-- Score is advisory; missing applicable Hard Gates still default to **Not Ready**
+- If any applicable **Heavy-lane Hard Gate** is `❌ Fail` or `⏳ Not Run`, then `Ready to commit / merge` must be `No` unless the user explicitly authorizes proceeding
 
+## Explicit Override Protocol
+
+Default blockers may still be overridden by the user.
+
+**Valid override requirements:**
+- The user must explicitly authorize continuing with commit / PR / merge
+- The authorization must clearly refer to proceeding despite the shown readiness gaps
+- The user does **not** need a rigid magic phrase
+- The user does **not** need to enumerate every skipped gate individually if the authorization clearly applies to the shown panel
+
+**Valid examples:**
+- `我授权你继续提交`
+- `我授权跳过这个 review，继续 commit`
+- `授权继续提交`
+- `I authorize proceeding with the commit despite the review gap`
+
+**Invalid examples:**
+- `直接提吧`
+- `ship it`
+- `应该没问题`
+
+After a valid override:
+1. Echo back the overridden checks or shown gaps that are being accepted
+2. Echo back that the user explicitly authorized proceeding
+3. Mark overridden rows as `⚠️ Override`
+4. Then proceed only with the action the user authorized
 ## Scoring Standard
 
 Use this default weighting unless the project defines its own:
@@ -129,6 +161,7 @@ Use this default weighting unless the project defines its own:
 |---|---|
 | Hard Gate | 5 |
 | Conditional | 3 |
+| Optional | 1 |
 | Bonus | 1 |
 
 Scoring rules:
@@ -136,37 +169,13 @@ Scoring rules:
 - `Fail`, `Not Run`, `Override` = 0
 - `N/A` rows are excluded from the denominator
 - `Robustness Score = earned_weight / applicable_weight * 100`, rounded to the nearest integer
-- Missing applicable Hard Gates still mean **Not Ready**, even if the score looks decent
+- Missing applicable Heavy-lane Hard Gates still mean **Not Ready**, even if the score looks decent
 
 Suggested bands:
 - `90-100` Strong
 - `75-89` Good with minor gaps
 - `60-74` Risky, user should review gaps carefully
 - `<60` Not ready
-
-## Explicit Override Protocol
-
-Hard Gates are default blockers, but the user may override them.
-
-**Valid override requirements:**
-- The user must explicitly accept the risk
-- The user must clearly say they still want to commit / PR / merge
-- The override must mention the missing Hard Gate(s), either individually or as an explicit list
-
-**Valid examples:**
-- `我接受未做子代理 review 的风险，继续提交`
-- `I accept the risk of skipping code review and deferred fixes; continue with the PR`
-
-**Invalid examples:**
-- `直接提吧`
-- `ship it`
-- `应该没问题`
-
-After a valid override:
-1. Echo back the overridden checks
-2. Echo back the accepted risks
-3. Mark those rows as `⚠️ Override`
-4. Then proceed only with the action the user approved
 
 ## Common Failures
 
@@ -176,7 +185,8 @@ After a valid override:
 | Bug fixed | Repro or regression evidence | Code changed, assumed fixed |
 | Review complete | Reviewer output + disposition of findings | "I looked at the diff myself" |
 | Mobile flow verified | Mobile MCP evidence or explicit N/A | "UI seems fine" |
-| Testcase docs updated | Doc path + updated status | "Will update later" |
+| TDD followed | Failing test first + fresh pass, or explicit approved skip when not practical | "I added tests afterward" |
+| Testcase backfilled | Doc path + updated cases/status | "Will update later" |
 | Ready to commit | Visible scorecard + summary + applicable Hard Gates passed or explicitly overridden | "Build and MCP passed" in prose |
 
 ## Red Flags - STOP
@@ -211,7 +221,8 @@ After a valid override:
 | Code review | Hard | Yes | ✅ | review ok | None |
 | Review fixes | Hard | Yes | ✅ | all fixed | None |
 | Tests | Conditional | Yes | ✅ | 12/12 | None |
-| Testcase doc | Conditional | No | N/A | — | Not needed |
+| TDD flow | Conditional | Yes | ✅ | RED→GREEN | None |
+| Testcase backfill | Conditional | No | N/A | — | Not needed |
 
 ## 验证汇总
 

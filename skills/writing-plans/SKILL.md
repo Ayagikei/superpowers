@@ -13,13 +13,23 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 **Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
 
-**REQUIRED SUB-SKILL:** Use planning-with-files to locate the project’s docs/planning directory and create `task_plan.md`, `findings.md`, and `progress.md`.
+**REQUIRED SUB-SKILL:** For **standard** and **heavy** work, use planning-with-files to locate the project’s docs/planning directory and create `task_plan.md`, `findings.md`, and `progress.md`. For **trivial** mini-plan work, this is optional unless the project or user asks for full planning artifacts.
 
 **Workspace:** Default to the current repo workspace. Use `superpowers:using-git-worktrees` only if the current directory has many unrelated changes or the user explicitly requests isolation.
 
-**Save plans to:** Follow project conventions to locate the docs/planning directory (per planning-with-files), and use a feature-specific folder so all related docs live together.
+**Save plans to:** Follow project conventions to locate the docs/planning directory (per planning-with-files) for standard/heavy work, and use a feature-specific folder so all related docs live together.
 
-**Co-locate feature docs:** The detailed plan, `task_plan.md`, `findings.md`, and `progress.md` should live in the same feature directory.
+**Co-locate feature docs:** For standard/heavy work, the detailed plan, `task_plan.md`, `findings.md`, and `progress.md` should live in the same feature directory.
+
+## Planning Lanes
+
+Classify the work before choosing the planning shape:
+
+- **Trivial** — very small, low-risk work; direct implementation is allowed, and a mini plan is enough when written steps help
+- **Standard** — bounded but non-trivial work; requires a lightweight implementation plan
+- **Heavy** — complex, broad, or architecture-sensitive work; requires the full implementation-plan workflow
+
+**Escalation rule:** if the work shows any signal from a higher lane, upgrade it to that higher lane.
 
 ## Scope Check
 
@@ -47,7 +57,7 @@ This structure informs the task decomposition. Each task should produce self-con
 
 ## Plan Document Header
 
-**Every plan MUST start with this header:**
+**Standard and Heavy plans MUST start with this header:**
 
 ```markdown
 # [Feature Name] Implementation Plan
@@ -116,6 +126,19 @@ git commit -m "feat: add specific feature"
 ```
 ````
 
+## Trivial Mini-Plan Format
+
+For trivial work, you may skip the full implementation-plan document and instead write a mini plan like:
+
+```markdown
+- Goal: [one sentence]
+- Files: `path/a`, `path/b`
+- Change shape: [2-4 bullets]
+- Verification: [1-2 bullets]
+```
+
+Use the mini-plan path only when the work truly stays trivial.
+
 ## No Placeholders
 
 Every step must contain the actual content an engineer needs. These are **plan failures** — never write them:
@@ -150,24 +173,27 @@ If you find issues, fix them inline. No need to re-review — just fix and move 
 
 After the self-review:
 
-1. Classify the work:
-   - **Lightweight:** a narrowly scoped tweak, small UI/content adjustment, or similarly bounded work where the plan is short and the expected implementation diff is modest
-   - **Heavy:** a new feature, broad refactor, multi-file coordination, architecture-sensitive work, or anything where an independent reviewer materially reduces planning risk
-2. If **Heavy**, independent plan review is the default:
+1. If **Trivial**:
+   - full implementation-plan document is not required
+   - independent reviewer is off by default
+   - proceed with the mini plan or direct implementation path
+2. If **Standard**:
+   - a lightweight plan is required
+   - planning-with-files artifacts are required
+   - ask whether to run the reviewer subagent or keep the planning flow lean
+   - if the reviewer is skipped, explicitly note that the independent reviewer gate was skipped by choice
+3. If **Heavy**, independent plan review is the default:
    - Dispatch a single plan-document-reviewer subagent (see plan-document-reviewer-prompt.md) with precisely crafted review context — never your session history
    - Provide: path to the plan document, path to spec document
    - If the harness requires explicit authorization before spawning subagents, ask for that authorization instead of silently skipping the reviewer
    - If the user declines that reviewer authorization, stop and ask whether they want to proceed with the independent reviewer gate explicitly skipped for this heavy task
    - If ❌ Issues Found: fix the issues, re-dispatch reviewer for the whole plan
    - If ✅ Approved: proceed to execution handoff
-3. If **Lightweight**, ask the user whether to run the reviewer subagent or keep the planning flow lean:
-   - If user wants review, dispatch the reviewer subagent
-   - If user declines, do one careful local review yourself and explicitly note that the independent reviewer gate was skipped by user choice before handoff
 4. Never present a local self-review as equivalent to an independent reviewer pass
 
 ## Execution Handoff
 
-After saving the plan, offer execution choice:
+After saving the plan, offer execution choice. For trivial work, you may skip this formal handoff and proceed directly if the user wants fast execution.
 
 **"Plan complete and saved to `<docs-dir>/<feature>/implementation-plan.md`. Three execution options:**
 

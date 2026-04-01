@@ -11,6 +11,10 @@ Execute a plan with subagents only when the user opts in or the task clearly ben
 
 **Core principle:** When using subagents, use a fresh subagent per task and a two-stage review (spec then quality). Fresh subagent per task + two-stage review = high quality, fast iteration.
 
+**Reviewer rule:** Reviewer subagents are leaf nodes. When dispatching any reviewer (spec, code quality, final review), explicitly instruct it to perform the review directly, not call or delegate to any other subagent, not discuss tool/platform limits, and return conclusions only from the provided scope plus code it reads itself.
+
+**Lane interaction:** this skill is usually the best fit for **standard** and **heavy** work. **Trivial** work normally stays manual unless the user explicitly wants subagents anyway.
+
 ## When to Use
 
 ```dot
@@ -127,6 +131,13 @@ Implementer subagents report one of four statuses. Handle each appropriately:
 - `./implementer-prompt.md` - Dispatch implementer subagent
 - `./spec-reviewer-prompt.md` - Dispatch spec compliance reviewer subagent
 - `./code-quality-reviewer-prompt.md` - Dispatch code quality reviewer subagent
+
+Always keep reviewer dispatches under a hard boundary:
+- The reviewer is the direct review agent for that request
+- It must not call, delegate, or suggest any other subagent or nested review
+- It must not discuss tool limitations or platform limitations
+- It must review only against the provided requirements, file scope, diff / SHA range, and code it directly inspects
+- If context is incomplete, it should state the missing inputs and still give the best review possible from the available evidence
 
 ## Example Workflow
 
@@ -252,6 +263,8 @@ Done!
 - Let implementer self-review replace actual review (both are needed)
 - **Start code quality review before spec compliance is ✅** (wrong order)
 - Move to next task while either review has open issues
+- Let a reviewer subagent spawn, delegate to, or suggest another reviewer / subagent
+- Let a reviewer turn missing context into nested review or tool-limit discussion instead of a direct review result
 
 **If subagent asks questions:**
 - Answer clearly and completely

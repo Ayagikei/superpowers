@@ -27,7 +27,7 @@ You MUST create a task for each of these items and complete them in order:
 4. **Propose 2-3 approaches** — with trade-offs and your recommendation
 5. **Present design** — in sections scaled to their complexity, get user approval after each section
 6. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
-7. **Spec review gate** — classify the task as lightweight or heavy, then handle review accordingly:
+7. **Spec quality gate** — first do a quick self-review for placeholders, contradictions, ambiguity, and scope; then classify the task as lightweight or heavy and handle independent review accordingly:
    - **Heavy task (default reviewer required):** run the spec-document-reviewer subagent with precisely crafted review context (never your session history); fix issues and re-dispatch until approved (max 3 iterations, then surface to human). If the current harness requires explicit user authorization before spawning subagents, ask for that authorization and explain that independent spec review is the default gate for heavy work.
    - **Lightweight task (ask first):** ask the user whether they want the reviewer subagent for the spec review or prefer to keep it lean. If they decline, do one careful local review and explicitly note that the independent reviewer gate was skipped by choice.
 8. **User reviews written spec** — ask user to review the spec file before proceeding
@@ -45,6 +45,7 @@ digraph brainstorming {
     "Present design sections" [shape=box];
     "User approves design?" [shape=diamond];
     "Write design doc" [shape=box];
+    "Spec self-review\n(fix inline)" [shape=box];
     "Classify task: lightweight or heavy?" [shape=diamond];
     "Spec review gate" [shape=box];
     "Spec review passed?" [shape=diamond];
@@ -60,7 +61,8 @@ digraph brainstorming {
     "Present design sections" -> "User approves design?";
     "User approves design?" -> "Present design sections" [label="no, revise"];
     "User approves design?" -> "Write design doc" [label="yes"];
-    "Write design doc" -> "Classify task: lightweight or heavy?";
+    "Write design doc" -> "Spec self-review\n(fix inline)";
+    "Spec self-review\n(fix inline)" -> "Classify task: lightweight or heavy?";
     "Classify task: lightweight or heavy?" -> "Spec review gate";
     "Spec review gate" -> "Spec review passed?";
     "Spec review passed?" -> "Spec review gate" [label="issues found,\nfix and re-dispatch"];
@@ -120,8 +122,18 @@ digraph brainstorming {
 - Use elements-of-style:writing-clearly-and-concisely skill if available
 - Commit the design document to git
 
+**Spec Self-Review:**
+After writing the spec document, look at it with fresh eyes:
+
+1. **Placeholder scan:** Any "TBD", "TODO", incomplete sections, or vague requirements? Fix them.
+2. **Internal consistency:** Do any sections contradict each other? Does the architecture match the feature descriptions?
+3. **Scope check:** Is this focused enough for a single implementation plan, or does it need decomposition?
+4. **Ambiguity check:** Could any requirement be interpreted two different ways? If so, pick one and make it explicit.
+
+Fix any issues inline before moving to the independent review decision.
+
 **Spec Review Gate:**
-After writing the spec document:
+After the spec self-review:
 
 1. Classify the work:
    - **Lightweight:** simple UI polish, copy tweaks, a narrow one-screen adjustment, or similarly low-risk work with a small expected diff and no meaningful architecture / business-rule impact

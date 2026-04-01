@@ -180,12 +180,14 @@ After the self-review:
 2. If **Standard**:
    - a lightweight plan is required
    - planning-with-files artifacts are required
-   - ask whether to run the reviewer subagent or keep the planning flow lean
-   - if the reviewer is skipped, explicitly note that the independent reviewer gate was skipped by choice
+   - this is the single default document-review layer for standard work
+   - run the reviewer subagent by default
+   - if the current runtime harness separately asks for authorization before spawning subagents, treat that as an environment exception rather than the project-policy default
+   - if the standard plan reviewer is intentionally skipped, explicitly note why
 3. If **Heavy**, independent plan review is the default:
    - Dispatch a single plan-document-reviewer subagent (see plan-document-reviewer-prompt.md) with precisely crafted review context — never your session history
    - Provide: path to the plan document, path to spec document
-   - If the harness requires explicit authorization before spawning subagents, ask for that authorization instead of silently skipping the reviewer
+   - If the harness requires explicit authorization before spawning subagents, ask for that authorization instead of silently skipping the reviewer; treat that as an environment exception rather than the project-policy default
    - If the user declines that reviewer authorization, stop and ask whether they want to proceed with the independent reviewer gate explicitly skipped for this heavy task
    - If ❌ Issues Found: fix the issues, re-dispatch reviewer for the whole plan
    - If ✅ Approved: proceed to execution handoff

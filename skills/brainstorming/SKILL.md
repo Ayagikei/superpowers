@@ -49,8 +49,8 @@ You MUST create a task for each of these items and complete them in order:
    - **Heavy:** full design spec saved to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
 8. **Spec quality gate** — self-review first, then lane-based review:
    - **Trivial:** reviewer subagent off by default; do one careful local review
-   - **Standard:** ask whether to run reviewer subagent or keep it lean; if skipped, record that choice
-   - **Heavy:** independent reviewer is the default gate; if the harness requires explicit authorization before spawning subagents, ask for it
+   - **Standard:** independent spec reviewer is off by default, because standard work should not pass through both spec review and plan review by default
+   - **Heavy:** independent reviewer is the default gate; if the harness requires explicit authorization before spawning subagents, ask for it as a runtime exception rather than a project-policy default
 9. **User reviews the design artifact** — if there is a written note/spec, ask the user to review it; if the task stayed trivial and inline, get confirmation on the short design acknowledgement
 10. **Transition to implementation**
    - **Trivial:** implement directly or invoke writing-plans for a mini plan
@@ -164,11 +164,12 @@ After the self-review:
    - do one careful local review
    - if the task grows in scope, upgrade the lane instead of forcing it through the trivial path
 2. If **Standard**:
-   - ask whether to run the reviewer subagent or keep the flow lean
-   - if the reviewer is skipped, explicitly record that the independent reviewer gate was skipped by choice
+   - independent spec reviewer is normally skipped
+   - rely on self-review here, then use `writing-plans` as the single default document-review layer
+   - if the standard task looks unusually risky, you may still run a spec reviewer, but that is an exception rather than the default
 3. If **Heavy**, independent reviewer pass is the default:
    - Dispatch spec-document-reviewer subagent (see spec-document-reviewer-prompt.md)
-   - If the harness requires explicit authorization before spawning subagents, ask the user for that authorization instead of silently skipping the reviewer
+   - If the harness requires explicit authorization before spawning subagents, ask the user for that authorization instead of silently skipping the reviewer; treat that as a runtime exception, not project policy
    - If the user declines that reviewer authorization, stop and ask whether they want to proceed with the independent reviewer gate explicitly skipped for this heavy task
    - If Issues Found: fix, re-dispatch, repeat until Approved
    - If loop exceeds 3 iterations, surface to human for guidance

@@ -15,6 +15,8 @@ The goal is to reduce friction for simple work without losing explicit risk visi
 - Let very simple UI / copy / narrow polish tasks skip full heavyweight ceremony
 - Keep moderate tasks on a lightweight but explicit plan + review path
 - Preserve full spec / plan / independent review gates for high-risk work
+- Make reviewer subagents policy-allowed by default for document review and code review
+- Avoid making standard work pass through both spec review and plan review by default
 - Relax submission overrides so users do not need rigid magic phrases; explicit authorization language should be enough
 - Keep readiness reporting visible even when gates are skipped by authorization
 
@@ -57,8 +59,9 @@ Use for:
 Process:
 - require a lightweight plan
 - require lightweight planning artifacts
-- allow lightweight review by default
-- reviewer subagent remains optional unless the user wants it or risk rises during execution
+- allow exactly one document-review layer by default
+- that default document-review layer should be **plan review**, not both spec review and plan review
+- reviewer subagents are policy-allowed by default for the chosen document-review layer and for code review
 - verification uses a short but explicit readiness scorecard
 - explicit user authorization can override a missing gate
 
@@ -110,7 +113,7 @@ This rule is intentionally conservative. Borderline tasks should move up, not do
 Change from a binary lightweight/heavy gate to a three-lane gate:
 
 - **Trivial:** allow a short design summary and immediate transition to implementation or a mini plan
-- **Standard:** require a short written design / plan handoff, but avoid mandatory spec-review subagent
+- **Standard:** require a short written design / plan handoff, but do **not** default to independent spec-review subagent
 - **Heavy:** preserve full written spec and independent spec review gate
 
 The skill should still avoid implementation before design acknowledgement, but it should scale ceremony to complexity.
@@ -126,7 +129,7 @@ It must not force trivial work into the full spec-review path.
 Add matching plan modes:
 
 - **Trivial:** mini plan allowed; may skip full implementation-plan document
-- **Standard:** lightweight implementation plan required
+- **Standard:** lightweight implementation plan required, and this becomes the single default document-review layer
 - **Heavy:** full implementation plan with review loop
 
 The skill should make clear that the plan artifact size depends on complexity, not a single default workflow for every task.
@@ -134,7 +137,7 @@ The skill should make clear that the plan artifact size depends on complexity, n
 More specifically:
 - **Trivial direct path:** no full implementation-plan document and no required planning-with-files artifacts
 - **Trivial mini-plan path:** a short plan artifact is allowed but should stay lightweight
-- **Standard:** planning-with-files remains required, but the plan can be short and tactical
+- **Standard:** planning-with-files remains required, the plan can be short and tactical, and plan review reviewer is default-allowed
 - **Heavy:** full implementation plan and normal review loop
 
 ### `skills/requesting-code-review/SKILL.md`
@@ -142,7 +145,7 @@ More specifically:
 Keep reviewer leaf-node constraints, but align invocation expectations with the new tiering:
 
 - Trivial work does not default to independent review
-- Standard work allows local review or optional reviewer subagent
+- Standard work defaults to allowing reviewer subagent use, even if it is not always a hard gate
 - Heavy work still defaults to independent reviewer
 
 This preserves review quality rules without forcing the same review ceremony everywhere.
@@ -196,17 +199,17 @@ Tie-breaker:
 |---|---|---|---|
 | Design acknowledgement | Required | Required | Required |
 | Full written spec | Skipped by default | Optional short design note | Required |
-| Spec review subagent | Off by default | Optional | Required by default |
+| Spec review subagent | Off by default | Off by default | Required by default |
 | Lightweight / full plan | Direct implement or mini plan | Lightweight plan required | Full plan required |
 | planning-with-files artifacts | Not required by default | Required | Required |
-| Plan review subagent | Off by default | Optional | Required by default |
-| Independent code review | Optional by default | Conditional / lightweight by default | Hard Gate by default |
+| Plan review subagent | Off by default | Default-allowed / default review layer | Required by default |
+| Independent code review | Optional by default | Default-allowed / recommended | Hard Gate by default |
 | Readiness panel | Lightweight | Short scorecard | Full scorecard |
 | User authorization override | Allowed | Allowed | Allowed, but must be echoed clearly |
 
 Interpretation:
 - `Trivial` aims for minimal ceremony
-- `Standard` keeps explicit planning and visible verification, but not full ceremony by default
+- `Standard` keeps explicit planning and visible verification, but defaults to only one document-review layer
 - `Heavy` keeps the strongest default gates
 
 ## Readiness / Submission Model
@@ -219,7 +222,7 @@ Interpretation:
 
 ### Standard
 - keep a concise scorecard
-- independent code review is conditional by default
+- independent code review is policy-allowed and recommended by default, but not a hard gate
 - mark skipped independent review as optional or overridden, depending on applicability
 - accept explicit user authorization as override
 
@@ -260,8 +263,9 @@ Interpretation:
 ## Success Criteria
 
 - Very simple tasks can complete with minimal ceremony
-- Moderate tasks get a lightweight but explicit plan / review path
+- Moderate tasks get a lightweight but explicit plan / review path without being forced through both spec review and plan review
 - Complex tasks still benefit from full spec and review loops
+- Reviewer subagents are default-allowed for document review and code review
 - Users can authorize skipping gates without memorizing rigid phrases
 
 ## Appendix: Fork-First Sync Strategy For This Maintenance Round

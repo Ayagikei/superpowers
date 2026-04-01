@@ -15,6 +15,8 @@ Execute a plan with subagents only when the user opts in or the task clearly ben
 
 **Lane interaction:** this skill is usually the best fit for **standard** and **heavy** work. **Trivial** work normally stays manual unless the user explicitly wants subagents anyway.
 
+**Policy boundary:** reviewer subagents are default-allowed for document review and code review. The opt-in / clear-benefit gate mainly applies to implementation workers, not to reviewer agents.
+
 ## When to Use
 
 ```dot

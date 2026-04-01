@@ -16,10 +16,12 @@ Use the same lane model as `brainstorming`, `writing-plans`, and `verification-b
 | Lane | Default review stance |
 |---|---|
 | Trivial | Independent reviewer optional by default |
-| Standard | Conditional by default; local review allowed, independent reviewer optional |
+| Standard | Independent reviewer default-allowed and recommended; local review still allowed |
 | Heavy | Independent reviewer is the default gate |
 
 If the task shows any higher-risk signal, upgrade it to the higher lane.
+
+Reviewer subagents for code review are **policy-allowed by default**. If a specific runtime harness separately asks for authorization before spawning one, treat that as an environment exception rather than the repository's default policy.
 
 ## When to Request Review
 
@@ -159,7 +161,7 @@ You: [Fix progress indicators]
 
 **Lane-specific note:**
 - Trivial work may legitimately skip independent review
-- Standard work may use local review instead of an independent reviewer
+- Standard work may use local review instead of an independent reviewer, but reviewer subagent use should not require special project-policy permission
 - Heavy work should not silently downgrade review without user authorization
 
 **If reviewer wrong:**

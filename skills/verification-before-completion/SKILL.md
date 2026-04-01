@@ -52,7 +52,7 @@ Before commit, PR, or merge:
 | Lane | Review default | Readiness output | Typical use |
 |---|---|---|---|
 | Trivial | independent review optional by default | lightweight panel | copy tweaks, narrow UI polish, tiny low-risk fixes |
-| Standard | independent review conditional by default; local review allowed | short scorecard | bounded multi-file or low-risk behavior changes |
+| Standard | independent review default-allowed and recommended; local review allowed | short scorecard | bounded multi-file or low-risk behavior changes |
 | Heavy | independent review hard by default | full scorecard | broad, risky, or architecture-sensitive work |
 
 If the work shows any higher-risk signal, upgrade it to that lane before applying readiness rules.
@@ -63,7 +63,7 @@ Use these defaults unless the project has a stricter rule.
 
 | Check | Default Level by Lane | Applies When | Expected Evidence |
 |---|---|---|---|
-| Independent code review via `requesting-code-review` | Trivial: Optional / Standard: Conditional / Heavy: Hard Gate | Most code changes | reviewer result |
+| Independent code review via `requesting-code-review` | Trivial: Optional / Standard: Recommended / Heavy: Hard Gate | Most code changes | reviewer result |
 | Review disposition for all review streams (fixed / deferred / rejected with reason) | Trivial: Only if review ran / Standard: Conditional / Heavy: Hard Gate | Any review returned findings | short disposition list |
 | Automated tests / regression | Conditional | Tests exist, logic changed, or bugfix touched covered code | fresh test output |
 | New or updated automated tests | Conditional | New behavior or logic fix where tests are practical | added test + fresh pass |
@@ -75,6 +75,7 @@ Use these defaults unless the project has a stricter rule.
 
 Notes:
 - `requesting-code-review` is the default independent review workflow when the chosen lane requires or benefits from it.
+- Reviewer subagents for document review and code review are policy-allowed by default. If a specific runtime harness separately demands explicit authorization before spawning one, treat that as an environment exception rather than the repository default.
 - `Review disposition` covers findings from `requesting-code-review`, `mobile-diff-review`, and any other explicit review stream you asked an agent to run.
 - When TDD applies, use `test-driven-development`. If the project or user explicitly required TDD, upgrade this check from **Conditional** to **Hard Gate**.
 - For testcase docs / backfill, use project convention first. If a structured checklist needs to be drafted or backfilled, use `test-case-summary` and adapt it to any project-specific house style.
@@ -90,6 +91,11 @@ Use these heuristics to choose the lane faster:
 | Docs-only / copy-only / tiny UI polish | Trivial | upgrade if the change affects rules, flows, or multiple surfaces |
 | Bounded feature adjustment / small multi-file change | Standard | local review may be enough |
 | New feature / broad refactor / state-flow change | Heavy | keep the strongest default gates |
+
+For document review specifically:
+- **Trivial:** no default document review
+- **Standard:** default to exactly one document-review layer, normally **plan review**
+- **Heavy:** default to both spec review and plan review
 
 ## Required User-Facing Output
 

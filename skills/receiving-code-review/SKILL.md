@@ -23,6 +23,7 @@ WHEN receiving code review feedback:
 5. EVALUATE: Technically sound for THIS codebase?
 6. RESPOND: Technical acknowledgment or reasoned pushback
 7. IMPLEMENT: One item at a time, test each
+8. REPORT-BACK: After handling subagent review, tell your human partner what was found, what changed, and whether behavior changed
 ```
 
 ## Scope Gate Before Any Change
@@ -225,6 +226,49 @@ When feedback IS correct:
 
 **If you catch yourself about to write "Thanks":** DELETE IT. State the fix instead.
 
+## Post-Review Summary Back To Your Human Partner
+
+If you handled feedback from a subagent or other external reviewer, do **not** disappear into silent implementation.
+
+After you finish evaluating and acting on that feedback, give your human partner a **1-2 sentence summary** that covers:
+
+1. **What the reviewer actually found** — real bug, code-quality issue, mismatch with intent, or expected behavior / false alarm
+2. **What you did about it** — fixed it, partially fixed it, or intentionally left it unchanged with reason
+3. **Whether behavior changed** — user-visible behavior change, internal-only cleanup, or no behavior change
+
+This summary is for human oversight. Your human partner may agree with your fix, reject it, or decide the reviewer found an intended behavior. Surface that decision point clearly instead of forcing them to reconstruct it from the diff.
+
+### Required Cases
+
+Give this summary when:
+- you accepted and implemented a subagent / external review suggestion
+- you investigated a review item and decided it was expected behavior or not worth changing
+- you implemented only part of the suggestion because the rest was out of scope or too risky
+
+Do **not** skip the summary just because the fix was small or because you think the diff is self-explanatory.
+
+### Summary Pattern
+
+Keep it short and factual:
+
+```text
+Subagent found [issue type]. I [fixed / declined / narrowed] it by [change]. [Behavior impact sentence].
+```
+
+### Good Examples
+
+```text
+Subagent found that the retry path could bypass the existing timeout guard. I fixed it by routing retries through the same bounded helper. This should not change normal behavior, but it now fails fast instead of hanging on that edge path.
+```
+
+```text
+Subagent flagged the current empty-state branch, but after checking the approved flow I confirmed that behavior is intentional. I left the code unchanged. No behavior changed.
+```
+
+```text
+Subagent found a valid null-handling bug, but the broader fallback they suggested would expand scope. I fixed the crash with a narrow guard and did not add the larger recovery path. Behavior changes only for that invalid-input case; normal flow stays the same.
+```
+
 ## Gracefully Correcting Your Pushback
 
 If you pushed back and were wrong:
@@ -254,6 +298,7 @@ State the correction factually and move on.
 | Can't verify, proceed anyway | State limitation, ask for direction |
 | Over-fixing rare edge cases | Prioritize by user impact; keep fallback when safer |
 | Ping-ponging A↔B fixes | Stop, reassess root cause, then pick smallest safe change |
+| Fixing subagent feedback silently | Add a 1-2 sentence summary of what was found, what you changed, and whether behavior changed |
 
 ## Real Examples
 

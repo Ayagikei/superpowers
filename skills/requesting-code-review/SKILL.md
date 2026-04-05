@@ -66,8 +66,9 @@ Code review is not an RPC. Give the reviewer enough time to read the diff, compa
 
 - If you can continue other non-overlapping work, do that first and let review run in the background
 - If review is on the critical path, wait in longer intervals rather than busy-polling
-- In Codex, prefer a single longer `wait` when blocked (minutes, not seconds)
-- Do not interrupt just because the first wait returned no result
+- In Codex, record the reviewer `agent_id`, then use `wait_agent` when blocked (prefer one longer wait over short polling)
+- Do not interrupt just because the first `wait_agent` returned no result
+- In Codex, close the reviewer with `close_agent` once you have integrated or dispositioned the result and no follow-up is needed
 - Only interrupt when priorities changed, the context became stale, or you have strong evidence the reviewer is stuck
 
 **2.3 Frame the review around approved scope:**
@@ -152,6 +153,7 @@ You: [Fix progress indicators]
 - Proceed with unfixed Important issues
 - Argue with valid technical feedback
 - Treat a slow reviewer as a failed reviewer after one short wait
+- In Codex, replace subagent waiting with shell waits, ad-hoc polling commands, or other non-agent blocking patterns
 - Interrupt a reviewer just to get a faster but shallower answer
 - Let a reviewer spawn, delegate to, or suggest another reviewer / subagent
 - Let a reviewer convert missing context into tool-limit discussion instead of a direct review result

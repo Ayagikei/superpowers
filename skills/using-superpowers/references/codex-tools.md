@@ -6,7 +6,7 @@ Skills use Claude Code tool names. When you encounter these in a skill, use your
 |-----------------|------------------|
 | `Task` tool (dispatch subagent) | `spawn_agent` (see [Named agent dispatch](#named-agent-dispatch)) |
 | Multiple `Task` calls (parallel) | Multiple `spawn_agent` calls |
-| Task returns result | `wait` |
+| Task returns result | `wait_agent` |
 | Task completes automatically | `close_agent` to free slot |
 | `TodoWrite` (task tracking) | `update_plan` |
 | `Skill` tool (invoke a skill) | Skills load natively — just follow the instructions |
@@ -22,7 +22,53 @@ Add to your Codex config (`~/.codex/config.toml`):
 multi_agent = true
 ```
 
-This enables `spawn_agent`, `wait`, and `close_agent` for skills like `dispatching-parallel-agents` and `subagent-driven-development`.
+This enables `spawn_agent`, `wait_agent`, and `close_agent` for skills like `dispatching-parallel-agents` and `subagent-driven-development`.
+
+## Canonical Codex Subagent Lifecycle
+
+In Codex, subagent orchestration should use the agent lifecycle tools directly rather than shell waits, ad-hoc polling commands, or unrelated background-task patterns.
+
+Use this minimum closed loop:
+
+1. `spawn_agent(...)`
+2. Record the returned `agent_id` plus the task target / ownership
+3. When blocked on the result, call `wait_agent(...)`
+4. If multiple agents are active, maintain a `pending` collection keyed by `agent_id`
+5. Process whichever agent completes and remove it from `pending`
+6. Once the result is integrated and the agent is no longer needed, call `close_agent(id)`
+
+### Single-agent pattern
+
+```text
+agent_id = spawn_agent(...)
+record { agent_id, target }
+
+if blocked on the result:
+  wait_agent([agent_id], timeout_ms=...)
+
+when finished and no longer needed:
+  close_agent(agent_id)
+```
+
+### Multi-agent pattern
+
+```text
+pending = { agent_id: target, ... }
+
+while pending is not empty:
+  completed = wait_agent(ids=[...pending.keys()], timeout_ms=...)
+  process whichever agent finished
+  remove finished agent from pending
+  close_agent(agent_id) when its work is integrated and no follow-up is needed
+```
+
+### Codex-specific rules
+
+- Do **not** substitute shell `wait`, sleep loops, `write_stdin` polling, or other generic command waits for subagent completion semantics
+- Do **not** busy-poll in short intervals; if blocked, prefer a longer `wait_agent`
+- If you can continue meaningful non-overlapping work, do that before waiting
+- If you need the result immediately for the next step, `wait_agent` is the correct blocking primitive
+- Finished agents still consume coordination overhead; close them promptly once they are no longer needed
 
 ## Named agent dispatch
 

@@ -46,6 +46,17 @@ digraph when_to_use {
 - Two-stage review after each task: spec compliance first, then code quality
 - Faster iteration (no human-in-loop between tasks)
 
+## Codex Agent Lifecycle
+
+This skill is cross-platform, but in Codex the controller should map subagent orchestration to the native agent lifecycle tools:
+
+- record each spawned subagent as `{ agent_id, target }`
+- when blocked on a subagent result, use `wait_agent`
+- if multiple subagents are active, maintain a `pending` set / map and wait on that set
+- after integrating a finished subagent's output, call `close_agent` unless you know you will reuse it immediately
+
+Do **not** use shell waits, background command polling, or other non-agent waiting patterns as a substitute for subagent completion.
+
 ## The Process
 
 ```dot
@@ -257,6 +268,8 @@ Done!
 - Skip reviews (spec compliance OR code quality)
 - Proceed with unfixed issues
 - Dispatch multiple implementation subagents in parallel (conflicts)
+- In Codex, substitute shell/background waits for `wait_agent`
+- In Codex, leave completed agents open when their results are already integrated
 - Make subagent read plan file (provide full text instead)
 - Skip scene-setting context (subagent needs to understand where task fits)
 - Ignore subagent questions (answer before letting them proceed)

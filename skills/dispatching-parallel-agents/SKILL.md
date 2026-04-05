@@ -81,6 +81,18 @@ When agents return:
 - Run full test suite
 - Integrate all changes
 
+### 5. Codex lifecycle mapping
+
+In Codex, keep the same parallel-dispatch strategy but map the coordination to native agent lifecycle tools:
+
+- After each `spawn_agent`, record `agent_id` plus the target task / subsystem
+- Maintain a `pending` collection for every still-running agent
+- When you are blocked on results, call `wait_agent` with the current pending IDs
+- Process whichever agent finished, then remove it from `pending`
+- Once an agent's result is integrated and you no longer need to message it, call `close_agent`
+
+Do **not** replace this with shell `wait`, sleep loops, or generic command polling. Those do not carry subagent completion semantics.
+
 ## Agent Prompt Structure
 
 Good agent prompts are:
@@ -122,6 +134,9 @@ Return: Summary of what you found and what you fixed.
 
 **❌ Vague output:** "Fix it" - you don't know what changed
 **✅ Specific:** "Return summary of root cause and changes"
+
+**❌ Codex shell waiting:** use shell/background waits to "wait for agents"
+**✅ Codex lifecycle:** track `pending`, use `wait_agent`, then `close_agent`
 
 ## When NOT to Use
 

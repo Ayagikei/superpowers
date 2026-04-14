@@ -23,9 +23,10 @@ Write the test first. Watch it fail. Write minimal code to pass.
 **Consider TDD when feasible:**
 - UI changes with practical automated UI tests
 
-**You may skip TDD (with explicit rationale + user confirmation):**
+**You may skip strict TDD / RED (with explicit rationale):**
 - UI-only changes where UI tests are impractical
 - New requirements with minimal logic or mostly copy/markup changes
+- Truly greenfield feature work where no runnable seam exists yet and pre-implementation RED would only fail with missing symbols, compile errors, or "feature not wired" failures
 - Throwaway prototypes, generated code, or config-only changes
 
 **If the user explicitly requests TDD:** Do it, regardless of category.
@@ -118,9 +119,11 @@ Vague name, tests mock not code
 
 **MANDATORY. Never skip.**
 
-**Hard rule:** For behavior changes and business-logic changes, RED means the test runs and fails on the expected behavior. A compile error, import error, syntax error, broken test harness, or crashed test runner does **not** count as RED.
+**Hard rule:** For behavior changes and business-logic changes on an existing runnable seam, RED means the test runs and fails on the expected behavior. A compile error, import error, syntax error, broken test harness, or crashed test runner does **not** count as RED.
 
-**Only exception:** If the task itself is to fix compilation, imports, or the test environment/harness, then reproducing that exact failure is a valid RED state.
+**Exceptions:**
+- If the task itself is to fix compilation, imports, or the test environment/harness, reproducing that exact failure is a valid RED state.
+- If the task is truly greenfield feature work and the only possible pre-implementation failure is missing-symbol / compile / not-yet-wired noise, do not force a fake RED. Build the thinnest runnable slice first, then resume normal test-first flow once the seam exists.
 
 ```bash
 npm test path/to/test.test.ts
@@ -133,13 +136,14 @@ Confirm:
 
 | Task type | Valid RED | Not valid RED |
 |-----------|-----------|---------------|
-| Behavior / business-rule change | Assertion failure, wrong output, wrong state, missing exception, unexpected exception | Compile error, import error, syntax error, test bootstrap failure |
+| Behavior / business-rule change on an existing seam | Assertion failure, wrong output, wrong state, missing exception, unexpected exception | Compile error, import error, syntax error, test bootstrap failure |
+| Truly greenfield feature with no runnable seam yet | Skip strict RED with explicit rationale, create the thinnest runnable slice first, then return to behavior-first tests | Pretending a missing symbol / compile error is a meaningful behavior RED |
 | Fix compile / import issue | The target compile/import failure reproduces | Unrelated assertion failure that doesn't represent the real problem |
 | Fix test harness / fixture / environment | The target setup/bootstrap failure reproduces | A behavior assertion failure unrelated to the harness problem |
 
 **Test passes?** You're testing existing behavior. Fix test.
 
-**Test errors?** If the task is a behavior or logic change, fix the error first and re-run until you get the expected behavior failure. If the task is specifically to fix that compile/import/harness error, that error is the RED state.
+**Test errors?** If the task is a behavior or logic change on an existing seam, fix the error first and re-run until you get the expected behavior failure. If the task is specifically to fix that compile/import/harness error, that error is the RED state. If the task is greenfield work with no runnable seam yet, document the rationale and skip fake RED until a meaningful seam exists.
 
 ### GREEN - Minimal Code
 
@@ -282,7 +286,7 @@ Tests-first force edge case discovery before implementing. Tests-after verify yo
 | "TDD will slow me down" | TDD faster than debugging. Pragmatic = test-first. |
 | "Manual test faster" | Manual doesn't prove edge cases. You'll re-test every change. |
 | "Existing code has no tests" | You're improving it. Add tests for existing code. |
-| "The test doesn't compile, so RED is satisfied" | Only when the task is to fix compilation/imports/test harness itself. For behavior changes, you still need a running test with a behavior failure. |
+| "The test doesn't compile, so RED is satisfied" | Only when the task is to fix compilation/imports/test harness itself. For behavior changes on an existing seam, you still need a running test with a behavior failure. For greenfield work with no seam yet, skip fake RED instead of pretending the compile error is useful. |
 
 ## Red Flags - STOP and Start Over (When TDD Applies)
 
@@ -298,7 +302,7 @@ Tests-first force edge case discovery before implementing. Tests-after verify yo
 - "Keep as reference" or "adapt existing code"
 - "Already spent X hours, deleting is wasteful"
 - "TDD is dogmatic, I'm being pragmatic"
-- Treating compile/import/test-runner failure as RED for a behavior change
+- Treating compile/import/test-runner failure as RED for a behavior change on an existing seam
 - "This is different because..."
 
 **All of these mean: Delete code. Start over with TDD.**
@@ -346,7 +350,7 @@ When TDD applies, before marking work complete:
 
 - [ ] Every new function/method has a test
 - [ ] Watched each test fail before implementing
-- [ ] Each RED state matched the task: behavior failure for behavior changes, or the target compile/import/harness failure for infrastructure fixes
+- [ ] Each RED state matched the task: behavior failure for behavior changes on an existing seam, documented skip for greenfield work with no meaningful RED yet, or the target compile/import/harness failure for infrastructure fixes
 - [ ] Wrote minimal code to pass each test
 - [ ] All tests pass
 - [ ] Output pristine (no errors, warnings)
@@ -385,4 +389,4 @@ When TDD applies:
   Otherwise → not TDD
 ```
 
-No exceptions when TDD applies without your human partner's permission to skip.
+No exceptions when TDD applies, except the explicit scope-gate cases above.

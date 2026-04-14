@@ -191,7 +191,7 @@ Suggested bands:
 | Bug fixed | Repro or regression evidence | Code changed, assumed fixed |
 | Review complete | Reviewer output + disposition of findings | "I looked at the diff myself" |
 | Mobile flow verified | Mobile MCP evidence or explicit N/A | "UI seems fine" |
-| TDD followed | Failing test first + fresh pass, or explicit approved skip when not practical | "I added tests afterward" |
+| TDD followed | Failing test first + fresh pass, or documented skip when tests are impractical or greenfield work has no meaningful RED yet | "I added tests afterward" |
 | Testcase backfilled | Doc path + updated cases/status | "Will update later" |
 | Ready to commit | Visible scorecard + summary + applicable Hard Gates passed or explicitly overridden | "Build and MCP passed" in prose |
 

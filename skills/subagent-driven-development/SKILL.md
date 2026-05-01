@@ -1,6 +1,6 @@
 ---
 name: subagent-driven-development
-description: Use when executing implementation plans with independent tasks and the user opts in to subagents or subagents are clearly more efficient
+description: Use when executing independent implementation tasks with explicit or clearly beneficial subagent delegation
 ---
 
 # Subagent-Driven Development
@@ -108,18 +108,20 @@ digraph process {
 
 ## Model Selection
 
-Use the least powerful model that can handle each role to conserve cost and increase speed.
+Use the least powerful model and reasoning effort that can handle each role while preserving correctness.
 
-**Mechanical implementation tasks** (isolated functions, clear specs, 1-2 files): use a fast, cheap model. Most implementation tasks are mechanical when the plan is well-specified.
+**Exploration and simple tasks** (repo lookup, bounded investigation, log inspection, simple scoped edits): use `gpt-5.3-codex` with `medium` reasoning by default. Use `low` when the task is mechanical and low risk.
 
-**Integration and judgment tasks** (multi-file coordination, pattern matching, debugging): use a standard model.
+**Medium tasks** (focused implementation, targeted review, integration with known patterns): use `gpt-5.5` with `low` reasoning.
 
-**Architecture, design, and review tasks**: use the most capable available model.
+**Advanced tasks** (architecture, broad code review, complex debugging, high-risk implementation, multi-file coordination): use `gpt-5.5` with `medium` reasoning.
+
+Escalate GPT-5.5 to `high` or `xhigh` only when the task is unusually hard and the extra latency/cost is justified by risk, failed lower-effort attempts, or explicit user direction.
 
 **Task complexity signals:**
-- Touches 1-2 files with a complete spec → cheap model
-- Touches multiple files with integration concerns → standard model
-- Requires design judgment or broad codebase understanding → most capable model
+- Touches 1-2 files with a complete spec -> `gpt-5.3-codex` or `gpt-5.5` low
+- Touches multiple files with integration concerns -> `gpt-5.5` low or medium
+- Requires design judgment or broad codebase understanding -> `gpt-5.5` medium or higher
 
 ## Handling Implementer Status
 

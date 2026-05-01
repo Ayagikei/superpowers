@@ -1,6 +1,6 @@
 ---
 name: unattended-mode
-description: Use when the user explicitly requests unattended work via keywords (unattended, no-interruption, 无人值守, 别打断, 不要问我, 直接做完, 一次性完成, 全自动) or clear intent to proceed without questions or pauses and expects autonomous completion.
+description: Use when the user explicitly requests unattended autonomous work or no-interruption completion
 ---
 
 # Unattended Mode

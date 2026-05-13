@@ -1,6 +1,6 @@
 ---
 name: brainstorming
-description: "Use before creative feature, component, UX, or behavior changes where intent or design needs shaping"
+description: "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation."
 ---
 
 # Brainstorming Ideas Into Designs
@@ -15,23 +15,7 @@ Do NOT invoke any implementation skill, write any code, scaffold any project, or
 
 ## Anti-Pattern: "This Is Too Simple To Need A Design"
 
-Every project still needs design acknowledgement. A todo list, a single-function utility, a config change — all of them. But the **ceremony scales by complexity**:
-
-- **Trivial:** short design acknowledgement is enough
-- **Standard:** short written design / handoff
-- **Heavy:** full written spec + independent review
-
-"Simple" projects are where unexamined assumptions cause wasted work. The design can be very short, but you MUST present it and get approval.
-
-## Complexity Lanes
-
-Classify the task before deciding how much ceremony it needs:
-
-- **Trivial** — copy tweaks, narrow UI polish, one-screen layout nudges, or one/two-file low-risk fixes with no meaningful business-rule / state / architecture impact
-- **Standard** — bounded feature adjustments, small multi-file work, or low-risk behavior changes that still benefit from written steps
-- **Heavy** — new features, cross-module work, state / data-flow changes, architecture-sensitive work, or broad/high-risk diffs
-
-**Escalation rule:** if a task shows **any signal from a higher lane**, upgrade it to that higher lane.
+Every project goes through this process. A todo list, a single-function utility, a config change — all of them. "Simple" projects are where unexamined assumptions cause the most wasted work. The design can be short (a few sentences for truly simple projects), but you MUST present it and get approval.
 
 ## Checklist
 
@@ -42,19 +26,10 @@ You MUST create a task for each of these items and complete them in order:
 3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
 4. **Propose 2-3 approaches** — with trade-offs and your recommendation
 5. **Present design** — in sections scaled to their complexity, get user approval after each section
-6. **Classify the task lane** — trivial / standard / heavy
-7. **Write the design artifact appropriate to the lane**
-   - **Trivial:** short design acknowledgement in chat; optional short note if helpful
-   - **Standard:** short written design / handoff note
-   - **Heavy:** full design spec saved to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
-8. **Spec quality gate** — self-review first, then lane-based review:
-   - **Trivial:** reviewer subagent off by default; do one careful local review
-   - **Standard:** independent spec reviewer is off by default, because standard work should not pass through both spec review and plan review by default
-   - **Heavy:** independent reviewer is the default gate; if the harness requires explicit authorization before spawning subagents, ask for it as a runtime exception rather than a project-policy default
-9. **User reviews the design artifact** — if there is a written note/spec, ask the user to review it; if the task stayed trivial and inline, get confirmation on the short design acknowledgement
-10. **Transition to implementation**
-   - **Trivial:** implement directly or invoke writing-plans for a mini plan
-   - **Standard / Heavy:** invoke writing-plans
+6. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
+7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
+8. **User reviews written spec** — ask user to review the spec file before proceeding
+9. **Transition to implementation** — invoke writing-plans skill to create implementation plan
 
 ## Process Flow
 
@@ -67,12 +42,9 @@ digraph brainstorming {
     "Propose 2-3 approaches" [shape=box];
     "Present design sections" [shape=box];
     "User approves design?" [shape=diamond];
-    "Classify lane:\ntrivial / standard / heavy" [shape=diamond];
-    "Write lane-appropriate\ndesign artifact" [shape=box];
+    "Write design doc" [shape=box];
     "Spec self-review\n(fix inline)" [shape=box];
-    "Lane-based review gate" [shape=box];
-    "User reviews design?" [shape=diamond];
-    "Direct implement or mini plan" [shape=box];
+    "User reviews spec?" [shape=diamond];
     "Invoke writing-plans skill" [shape=doublecircle];
 
     "Explore project context" -> "Visual questions ahead?";
@@ -83,18 +55,15 @@ digraph brainstorming {
     "Propose 2-3 approaches" -> "Present design sections";
     "Present design sections" -> "User approves design?";
     "User approves design?" -> "Present design sections" [label="no, revise"];
-    "User approves design?" -> "Classify lane:\ntrivial / standard / heavy" [label="yes"];
-    "Classify lane:\ntrivial / standard / heavy" -> "Write lane-appropriate\ndesign artifact";
-    "Write lane-appropriate\ndesign artifact" -> "Spec self-review\n(fix inline)";
-    "Spec self-review\n(fix inline)" -> "Lane-based review gate";
-    "Lane-based review gate" -> "User reviews design?";
-    "User reviews design?" -> "Write lane-appropriate\ndesign artifact" [label="changes requested"];
-    "User reviews design?" -> "Direct implement or mini plan" [label="approved, trivial"];
-    "User reviews design?" -> "Invoke writing-plans skill" [label="approved, standard/heavy"];
+    "User approves design?" -> "Write design doc" [label="yes"];
+    "Write design doc" -> "Spec self-review\n(fix inline)";
+    "Spec self-review\n(fix inline)" -> "User reviews spec?";
+    "User reviews spec?" -> "Write design doc" [label="changes requested"];
+    "User reviews spec?" -> "Invoke writing-plans skill" [label="approved"];
 }
 ```
 
-**Terminal states:** trivial work may go straight to implementation or a mini plan; standard/heavy work transition to writing-plans. Do NOT invoke frontend-design, mcp-builder, or any other implementation skill directly from brainstorming.
+**The terminal state is invoking writing-plans.** Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. The ONLY skill you invoke after brainstorming is writing-plans.
 
 ## The Process
 
@@ -137,58 +106,34 @@ digraph brainstorming {
 
 ## After the Design
 
-**Documentation by lane:**
+**Documentation:**
 
-- **Trivial:** short design acknowledgement in chat is enough by default; a written note is optional
-- **Standard:** write a short design note if the handoff benefits from it
-- **Heavy:** write the validated design (spec) to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
+- Write the validated design (spec) to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
   - (User preferences for spec location override this default)
 - Use elements-of-style:writing-clearly-and-concisely skill if available
-- If you create a design document, keep it scoped to the approved work
+- Commit the design document to git
 
 **Spec Self-Review:**
-After writing the lane-appropriate design artifact, look at it with fresh eyes:
+After writing the spec document, look at it with fresh eyes:
 
 1. **Placeholder scan:** Any "TBD", "TODO", incomplete sections, or vague requirements? Fix them.
 2. **Internal consistency:** Do any sections contradict each other? Does the architecture match the feature descriptions?
 3. **Scope check:** Is this focused enough for a single implementation plan, or does it need decomposition?
 4. **Ambiguity check:** Could any requirement be interpreted two different ways? If so, pick one and make it explicit.
 
-Fix any issues inline before moving to the lane-based review decision.
-
-**Spec Review Gate:**
-After the self-review:
-
-1. If **Trivial**:
-   - reviewer subagent is off by default
-   - do one careful local review
-   - if the task grows in scope, upgrade the lane instead of forcing it through the trivial path
-2. If **Standard**:
-   - independent spec reviewer is normally skipped
-   - rely on self-review here, then use `writing-plans` as the single default document-review layer
-   - if the standard task looks unusually risky, you may still run a spec reviewer, but that is an exception rather than the default
-3. If **Heavy**, independent reviewer pass is the default:
-   - Dispatch spec-document-reviewer subagent (see spec-document-reviewer-prompt.md)
-   - If the harness requires explicit authorization before spawning subagents, ask the user for that authorization instead of silently skipping the reviewer; treat that as a runtime exception, not project policy
-   - If the user declines that reviewer authorization, stop and ask whether they want to proceed with the independent reviewer gate explicitly skipped for this heavy task
-   - If Issues Found: fix, re-dispatch, repeat until Approved
-   - If loop exceeds 3 iterations, surface to human for guidance
-4. Never pretend a local review is equivalent to an independent reviewer pass
+Fix any issues inline. No need to re-review — just fix and move on.
 
 **User Review Gate:**
-After the review gate passes:
+After the spec review loop passes, ask the user to review the written spec before proceeding:
 
-- **Trivial:** ask the user to confirm the short design summary before implementing
-- **Standard / Heavy with written artifact:** ask the user to review the written note/spec before proceeding
-- If they request changes, make them and re-run the appropriate self-review / review loop
+> "Spec written and committed to `<path>`. Please review it and let me know if you want to make any changes before we start writing out the implementation plan."
+
+Wait for the user's response. If they request changes, make them and re-run the spec review loop. Only proceed once the user approves.
 
 **Implementation:**
 
-- Ask: "Ready to set up for implementation?"
-- If the current workspace has lots of unrelated changes or the user requests isolation, use superpowers:using-git-worktrees; otherwise stay in the current workspace
-- **Trivial:** implement directly or invoke writing-plans for a mini plan if written steps would help
-- **Standard / Heavy:** invoke the writing-plans skill
-- Do NOT jump straight from brainstorming to another implementation skill.
+- Invoke the writing-plans skill to create a detailed implementation plan
+- Do NOT invoke any other skill. writing-plans is the next step.
 
 ## Key Principles
 

@@ -1,11 +1,11 @@
 ---
 name: subagent-driven-development
-description: Use when executing independent implementation tasks with explicit or clearly beneficial subagent delegation
+description: Use when executing independent implementation tasks where subagent delegation is clearly beneficial
 ---
 
 # Subagent-Driven Development
 
-Execute a plan with subagents only when the user opts in or the task clearly benefits from subagents; otherwise fall back to manual execution or executing-plans.
+Execute a plan with subagents when the task clearly benefits from isolated context, independent workstreams, or review checkpoints; otherwise fall back to manual execution or executing-plans.
 
 **Why subagents:** You delegate tasks to specialized agents with isolated context. By precisely crafting their instructions and context, you ensure they stay focused and succeed at their task. They should never inherit your session's context or history — you construct exactly what they need. This also preserves your own context for coordination work.
 
@@ -13,9 +13,9 @@ Execute a plan with subagents only when the user opts in or the task clearly ben
 
 **Reviewer rule:** Reviewer subagents are leaf nodes. When dispatching any reviewer (spec, code quality, final review), explicitly instruct it to perform the review directly, not call or delegate to any other subagent, not discuss tool/platform limits, and return conclusions only from the provided scope plus code it reads itself.
 
-**Lane interaction:** this skill is usually the best fit for **standard** and **heavy** work. **Trivial** work normally stays manual unless the user explicitly wants subagents anyway.
+**Lane interaction:** this skill is usually the best fit for **standard** and **heavy** work. **Trivial** work normally stays manual unless there is a concrete benefit to delegation.
 
-**Policy boundary:** reviewer subagents are default-allowed for document review and code review. The opt-in / clear-benefit gate mainly applies to implementation workers, not to reviewer agents.
+**Policy boundary:** reviewer subagents are default-allowed for document review and code review. Implementation subagents are also allowed when the work is independent and delegation has a concrete benefit; user opt-in is not required by policy.
 
 ## When to Use
 
@@ -23,7 +23,7 @@ Execute a plan with subagents only when the user opts in or the task clearly ben
 digraph when_to_use {
     "Have implementation plan?" [shape=diamond];
     "Tasks mostly independent?" [shape=diamond];
-    "User opted in OR subagents clearly beneficial?" [shape=diamond];
+    "Subagents clearly beneficial?" [shape=diamond];
     "Stay in this session?" [shape=diamond];
     "subagent-driven-development" [shape=box];
     "executing-plans" [shape=box];
@@ -31,10 +31,10 @@ digraph when_to_use {
 
     "Have implementation plan?" -> "Tasks mostly independent?" [label="yes"];
     "Have implementation plan?" -> "Manual execution or brainstorm first" [label="no"];
-    "Tasks mostly independent?" -> "User opted in OR subagents clearly beneficial?" [label="yes"];
+    "Tasks mostly independent?" -> "Subagents clearly beneficial?" [label="yes"];
     "Tasks mostly independent?" -> "Manual execution or brainstorm first" [label="no - tightly coupled"];
-    "User opted in OR subagents clearly beneficial?" -> "Stay in this session?" [label="yes"];
-    "User opted in OR subagents clearly beneficial?" -> "Manual execution or brainstorm first" [label="no"];
+    "Subagents clearly beneficial?" -> "Stay in this session?" [label="yes"];
+    "Subagents clearly beneficial?" -> "Manual execution or brainstorm first" [label="no"];
     "Stay in this session?" -> "subagent-driven-development" [label="yes"];
     "Stay in this session?" -> "executing-plans" [label="no - parallel session"];
 }
@@ -78,13 +78,13 @@ digraph process {
         "Mark task complete in TodoWrite" [shape=box];
     }
 
-    "Ask user to opt in when not explicit; proceed only if opted in or clearly beneficial" [shape=box];
+    "Proceed when delegation is clearly beneficial; no separate user opt-in needed" [shape=box];
     "Read plan, extract all tasks with full text, note context, create TodoWrite" [shape=box];
     "More tasks remain?" [shape=diamond];
     "Dispatch final code reviewer subagent for entire implementation" [shape=box];
     "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
 
-    "Ask user to opt in when not explicit; proceed only if opted in or clearly beneficial" -> "Read plan, extract all tasks with full text, note context, create TodoWrite";
+    "Proceed when delegation is clearly beneficial; no separate user opt-in needed" -> "Read plan, extract all tasks with full text, note context, create TodoWrite";
     "Read plan, extract all tasks with full text, note context, create TodoWrite" -> "Dispatch implementer subagent (./implementer-prompt.md)";
     "Dispatch implementer subagent (./implementer-prompt.md)" -> "Implementer subagent asks questions?";
     "Implementer subagent asks questions?" -> "Answer questions, provide context" [label="yes"];
@@ -108,13 +108,13 @@ digraph process {
 
 ## Model Selection
 
-Use the least powerful model and reasoning effort that can handle each role while preserving correctness.
+When spawning a subagent, explicitly choose the model and reasoning effort instead of relying on an implicit default.
 
 **Exploration and simple tasks** (repo lookup, bounded investigation, log inspection, simple scoped edits): use `gpt-5.3-codex` with `medium` reasoning by default. Use `low` when the task is mechanical and low risk.
 
-**Medium tasks** (focused implementation, targeted review, integration with known patterns): use `gpt-5.5` with `low` reasoning.
+**Medium tasks** (focused implementation, targeted review, integration with known patterns): use `gpt-5.5` with `low` or `medium` reasoning. Prefer `medium` when correctness matters more than latency, and `low` when the scope is tight and well-understood.
 
-**Advanced tasks** (architecture, broad code review, complex debugging, high-risk implementation, multi-file coordination): use `gpt-5.5` with `medium` reasoning.
+**Advanced tasks** (architecture, broad code review, complex debugging, high-risk implementation, multi-file coordination): use `gpt-5.5` with `medium` reasoning by default.
 
 Escalate GPT-5.5 to `high` or `xhigh` only when the task is unusually hard and the extra latency/cost is justified by risk, failed lower-effort attempts, or explicit user direction.
 
@@ -157,7 +157,7 @@ Always keep reviewer dispatches under a hard boundary:
 ## Example Workflow
 
 ```
-You: This plan could benefit from subagents. Do you want me to use them, or proceed manually?
+You: This plan has independent tasks, so I am using subagents for isolated implementation and review.
 
 [Read plan file once: docs/superpowers/plans/feature-plan.md]
 [Extract all 5 tasks with full text and context]
@@ -265,7 +265,7 @@ Done!
 ## Red Flags
 
 **Never:**
-- Default to subagents without user consent or clear efficiency gains
+- Default to subagents without clear efficiency, isolation, or review-quality gains
 - Start implementation on main/master branch without explicit user consent
 - Skip reviews (spec compliance OR code quality)
 - Proceed with unfixed issues

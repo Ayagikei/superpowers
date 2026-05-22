@@ -16,12 +16,12 @@ Use the same lane model as `brainstorming`, `writing-plans`, and `verification-b
 | Lane | Default review stance |
 |---|---|
 | Trivial | Independent reviewer optional by default |
-| Standard | Independent reviewer default-allowed and recommended; local review still allowed |
+| Standard | Independent reviewer default-on unless clearly unnecessary |
 | Heavy | Independent reviewer is the default gate |
 
 If the task shows any higher-risk signal, upgrade it to the higher lane.
 
-Reviewer subagents for code review are **policy-allowed by default**. If a specific runtime harness separately asks for authorization before spawning one, treat that as an environment exception rather than the repository's default policy.
+Reviewer subagents for code review are **policy-allowed by default** and do not require separate user permission. If a specific runtime harness separately asks for authorization before spawning one, treat that as an environment exception rather than the repository's default policy.
 
 ## When to Request Review
 
@@ -31,9 +31,14 @@ Reviewer subagents for code review are **policy-allowed by default**. If a speci
 - Before merge to main
 - For mobile changes (iOS/Android/KMP), also consult `mobile-diff-review` for platform-specific risk checks
 
+**Default-on for Standard lane unless clearly unnecessary:**
+- Bounded multi-file changes
+- Low-risk behavior changes with real user impact
+- Completion / commit readiness when `verification-before-completion` marks independent review applicable
+
 **Optional but valuable:**
 - Trivial work when the user still wants an independent check
-- Standard work when you want an outside read before submission
+- Standard work when a second review pass is helpful beyond the default readiness review
 - When stuck (fresh perspective)
 - Before refactoring (baseline check)
 - After fixing complex bug
@@ -142,6 +147,7 @@ You: [Fix progress indicators]
 - Get feedback, apply, continue
 
 **Ad-Hoc Development:**
+- Review before readiness for Standard / Heavy lanes
 - Review before merge
 - Review when stuck
 
@@ -163,7 +169,7 @@ You: [Fix progress indicators]
 
 **Lane-specific note:**
 - Trivial work may legitimately skip independent review
-- Standard work may use local review instead of an independent reviewer, but reviewer subagent use should not require special project-policy permission
+- Standard work should use an independent reviewer by default when review is applicable; skip only with a concrete N/A reason
 - Heavy work should not silently downgrade review without user authorization
 
 **If reviewer wrong:**

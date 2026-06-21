@@ -1,6 +1,6 @@
 ---
 name: writing-plans
-description: Use when a multi-step task needs a detailed implementation plan document before any code changes
+description: Use when a multi-step task needs a detailed implementation plan document before code changes
 ---
 
 # Writing Plans
@@ -13,23 +13,9 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 **Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
 
-**REQUIRED SUB-SKILL:** For **standard** and **heavy** work, use planning-with-files to locate the project’s docs/planning directory and create `task_plan.md`, `findings.md`, and `progress.md`. For **trivial** mini-plan work, this is optional unless the project or user asks for full planning artifacts.
+**Context:** Default to the current repo workspace. Use `superpowers:using-git-worktrees` only if the current directory has many unrelated changes or the user explicitly requests isolation.
 
-**Workspace:** Default to the current repo workspace. Use `superpowers:using-git-worktrees` only if the current directory has many unrelated changes or the user explicitly requests isolation.
-
-**Save plans to:** Follow project conventions to locate the docs/planning directory (per planning-with-files) for standard/heavy work, and use a feature-specific folder so all related docs live together.
-
-**Co-locate feature docs:** For standard/heavy work, the detailed plan, `task_plan.md`, `findings.md`, and `progress.md` should live in the same feature directory.
-
-## Planning Lanes
-
-Classify the work before choosing the planning shape:
-
-- **Trivial** — very small, low-risk work; direct implementation is allowed, and a mini plan is enough when written steps help
-- **Standard** — bounded but non-trivial work; requires a lightweight implementation plan
-- **Heavy** — complex, broad, or architecture-sensitive work; requires the full implementation-plan workflow
-
-**Escalation rule:** if the work shows any signal from a higher lane, upgrade it to that higher lane.
+**Save plans to:** follow project conventions first. For this repo, use `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`; for other repos, prefer their existing `docs/plans`, `docs/plan`, or `docs/planning` location. User preferences override these defaults.
 
 ## Scope Check
 
@@ -46,6 +32,15 @@ Before defining tasks, map out which files will be created or modified and what 
 
 This structure informs the task decomposition. Each task should produce self-contained changes that make sense independently.
 
+## Task Right-Sizing
+
+A task is the smallest unit that carries its own test cycle and is worth a
+fresh reviewer's gate. When drawing task boundaries: fold setup,
+configuration, scaffolding, and documentation steps into the task whose
+deliverable needs them; split only where a reviewer could meaningfully
+reject one task while approving its neighbor. Each task ends with an
+independently testable deliverable.
+
 ## Bite-Sized Task Granularity
 
 **Each step is one action (2-5 minutes):**
@@ -57,7 +52,7 @@ This structure informs the task decomposition. Each task should produce self-con
 
 ## Plan Document Header
 
-**Standard and Heavy plans MUST start with this header:**
+**Every plan MUST start with this header:**
 
 ```markdown
 # [Feature Name] Implementation Plan
@@ -70,17 +65,14 @@ This structure informs the task decomposition. Each task should produce self-con
 
 **Tech Stack:** [Key technologies/libraries]
 
+## Global Constraints
+
+[The spec's project-wide requirements — version floors, dependency limits,
+naming and copy rules, platform requirements — one line each, with exact
+values copied verbatim from the spec. Every task's requirements implicitly
+include this section.]
+
 ---
-
-**Docs location (example):**
-
-```
-docs/plans/YYYY-MM-DD-<feature-name>/
-  implementation-plan.md
-  task_plan.md
-  findings.md
-  progress.md
-```
 ```
 
 ## Task Structure
@@ -93,7 +85,13 @@ docs/plans/YYYY-MM-DD-<feature-name>/
 - Modify: `exact/path/to/existing.py:123-145`
 - Test: `tests/exact/path/to/test.py`
 
-**Step 1: Write the failing test (if TDD applies)**
+**Interfaces:**
+- Consumes: [what this task uses from earlier tasks — exact signatures]
+- Produces: [what later tasks rely on — exact function names, parameter
+  and return types. A task's implementer sees only their own task; this
+  block is how they learn the names and types neighboring tasks use.]
+
+- [ ] **Step 1: Write the failing test**
 
 ```python
 def test_specific_behavior():
@@ -101,7 +99,7 @@ def test_specific_behavior():
     assert result == expected
 ```
 
-**Step 2: Run test to verify it fails (if TDD applies)**
+- [ ] **Step 2: Run test to verify it fails**
 
 Run: `pytest tests/path/test.py::test_name -v`
 Expected: FAIL with "function not defined"
@@ -113,7 +111,7 @@ def function(input):
     return expected
 ```
 
-**Step 4: Run test to verify it passes (if TDD applies)**
+- [ ] **Step 4: Run test to verify it passes**
 
 Run: `pytest tests/path/test.py::test_name -v`
 Expected: PASS
@@ -125,19 +123,6 @@ git add tests/path/test.py src/path/file.py
 git commit -m "feat: add specific feature"
 ```
 ````
-
-## Trivial Mini-Plan Format
-
-For trivial work, you may skip the full implementation-plan document and instead write a mini plan like:
-
-```markdown
-- Goal: [one sentence]
-- Files: `path/a`, `path/b`
-- Change shape: [2-4 bullets]
-- Verification: [1-2 bullets]
-```
-
-Use the mini-plan path only when the work truly stays trivial.
 
 ## No Placeholders
 
@@ -153,9 +138,7 @@ Every step must contain the actual content an engineer needs. These are **plan f
 - Exact file paths always
 - Complete code in every step — if a step changes code, show the code
 - Exact commands with expected output
-- Reference relevant skills by name (no @ links)
-- DRY, YAGNI, TDD when it applies, frequent commits
-- If unsure whether TDD applies, follow the scope gate in superpowers:test-driven-development
+- DRY, YAGNI, TDD, frequent commits
 
 ## Self-Review
 
@@ -169,53 +152,22 @@ After writing the complete plan, look at the spec with fresh eyes and check the 
 
 If you find issues, fix them inline. No need to re-review — just fix and move on. If you find a spec requirement with no task, add the task.
 
-## Plan Review Gate
-
-After the self-review:
-
-1. If **Trivial**:
-   - full implementation-plan document is not required
-   - independent reviewer is off by default
-   - proceed with the mini plan or direct implementation path
-2. If **Standard**:
-   - a lightweight plan is required
-   - planning-with-files artifacts are required
-   - this is the single default document-review layer for standard work
-   - run the reviewer subagent by default
-   - if the current runtime harness separately asks for authorization before spawning subagents, treat that as an environment exception rather than the project-policy default
-   - if the standard plan reviewer is intentionally skipped, explicitly note why
-3. If **Heavy**, independent plan review is the default:
-   - Dispatch a single plan-document-reviewer subagent (see plan-document-reviewer-prompt.md) with precisely crafted review context — never your session history
-   - Provide: path to the plan document, path to spec document
-   - If the harness requires explicit authorization before spawning subagents, ask for that authorization instead of silently skipping the reviewer; treat that as an environment exception rather than the project-policy default
-   - If the user declines that reviewer authorization, stop and ask whether they want to proceed with the independent reviewer gate explicitly skipped for this heavy task
-   - If ❌ Issues Found: fix the issues, re-dispatch reviewer for the whole plan
-   - If ✅ Approved: proceed to execution handoff
-4. Never present a local self-review as equivalent to an independent reviewer pass
-
 ## Execution Handoff
 
-After saving the plan, offer execution choice. For trivial work, you may skip this formal handoff and proceed directly if the user wants fast execution.
+After saving the plan, offer execution choice:
 
-**"Plan complete and saved to `<docs-dir>/<feature>/implementation-plan.md`. Three execution options:**
+**"Plan complete and saved to `docs/superpowers/plans/<filename>.md`. Two execution options:**
 
-**1. 当前会话继续执行 (Recommended)** - Manual execution in this session
+**1. Subagent-Driven (recommended)** - I dispatch a fresh subagent per task, review between tasks, fast iteration
 
-**2. 子代理驱动（本会话内逐任务执行）** - Subagent-Driven (this session): I dispatch fresh subagent per task, review between tasks, fast iteration
-
-**3. 并行会话（另开执行 plans）** - Parallel Session (separate): Open new session with executing-plans, batch execution with checkpoints
+**2. Inline Execution** - Execute tasks in this session using executing-plans, batch execution with checkpoints
 
 **Which approach?"**
 
-**If Current Session chosen:**
-- Stay in this session
-- Execute tasks manually (no subagents)
-
 **If Subagent-Driven chosen:**
 - **REQUIRED SUB-SKILL:** Use superpowers:subagent-driven-development
-- Stay in this session
-- Fresh subagent per task + code review
+- Fresh subagent per task + two-stage review
 
-**If Parallel Session chosen:**
-- If worktree criteria apply, create one with `superpowers:using-git-worktrees`; otherwise stay in current workspace
-- **REQUIRED SUB-SKILL:** New session uses superpowers:executing-plans
+**If Inline Execution chosen:**
+- **REQUIRED SUB-SKILL:** Use superpowers:executing-plans
+- Batch execution with checkpoints for review

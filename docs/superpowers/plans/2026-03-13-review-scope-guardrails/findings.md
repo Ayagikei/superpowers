@@ -1,0 +1,42 @@
+# Findings
+
+## 2026-03-13
+
+- Repository has an existing local modification to the `superpowers` submodule pointer and an unrelated untracked directory `skills/claude-to-im/`; neither overlaps the target skill files.
+- Existing convention for planning files in this repo uses `/Users/kei/.agents/superpowers/docs/superpowers/plans/<date>-<topic>/`.
+- Target skill candidates confirmed:
+  - `requesting-code-review`
+  - `receiving-code-review`
+  - `executing-plans`
+- Baseline gaps found in current skills:
+  - `requesting-code-review` and its `code-reviewer.md` template ask reviewers to inspect performance/architecture broadly, but do not explicitly separate "scope violation" from "optional improvement idea", so reviewers can accidentally create pressure for unrelated changes.
+  - `receiving-code-review` requires technical verification and skepticism, but does not explicitly say "even if reviewer is technically right, do not implement out-of-scope suggestions without user approval."
+  - `executing-plans` says "follow plan exactly", but does not define how to handle adjacent cleanup/optimization ideas discovered mid-task, nor require explicit scope-expansion records when the user approves extra work.
+- Likely fix shape:
+  - Add a scope gate to all three skills
+  - Distinguish required supporting changes vs optional opportunistic changes
+  - Require explicit user approval and written scope/test reporting before any approved scope expansion is implemented
+- Implemented fix shape:
+  - `requesting-code-review`: now requires reviewer framing around approved scope and forbids treating technically good suggestions as automatic approval
+  - `requesting-code-review/code-reviewer.md`: now has a dedicated `Out-of-Scope Follow-Ups (Require User Approval)` section and explicit reviewer rules to separate must-fix items from optional follow-ups
+  - `receiving-code-review`: now adds a `Scope Gate Before Any Change` and requires approval + delta/test reporting before any out-of-scope suggestion is implemented
+  - `executing-plans`: now adds a per-task scope gate, a stop condition for unrelated improvements, and a required record/report workflow if scope expands
+- Additional hardening:
+  - `receiving-code-review` now contains a concrete "custom sound effects / in-memory item lookup / repo fallback" example in both Bad and Good forms, making the intended boundary easier to retrieve under pressure
+- New failure mode reported on 2026-03-14:
+  - Bug scope: fix future writes only for newly occurring events
+  - Reviewer suggested legacy-event compensation/backfill
+  - Main agent implemented the compensation path without asking the user
+  - Problem: this is not a narrow fix to the reviewed change; it is a broader behavior change and can reasonably count as a new requirement / feature expansion
+- Additional gap exposed by this case:
+  - Current rules say "out-of-scope suggestions need approval", but they do not yet strongly distinguish **forward bug fix** vs **historical backfill / compensation / migration**
+  - Agents need a sharper rule that legacy repair, backfill, migration, or compensating actions are presumptively scope expansion unless explicitly requested or required by the approved plan
+- User clarification on 2026-03-14 widened the rule:
+  - The real issue is not only compensation/backfill
+  - Any reviewer-proposed **requirement expansion** should go through user approval
+  - Legacy compensation/backfill is just one high-risk subtype of that broader class
+- Implemented hardening for this broader class:
+  - `requesting-code-review`: reviewer output must now distinguish `Requirement expansions` from ordinary review fixes
+  - `requesting-code-review/code-reviewer.md`: now has a dedicated `Requirement Expansions (Require User Approval)` section with explicit example text
+  - `receiving-code-review`: now defaults scenario widening / time-horizon widening / backfill/migration/replay to requirement expansion and includes a concrete future-fix-vs-historical-remediation example
+  - `executing-plans`: now explicitly forbids silently converting a narrow bugfix into a wider requirement, even when it belongs to the same defect family

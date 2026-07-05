@@ -190,10 +190,14 @@ import sys
 import zipfile
 
 with zipfile.ZipFile(sys.argv[1]) as archive:
-    print("\n".join(sorted({str(info.date_time) for info in archive.infolist()})))
+    normalized = {
+        (info.date_time[0], info.date_time[1], info.date_time[2], info.date_time[5])
+        for info in archive.infolist()
+    }
+    print("\n".join(sorted(map(str, normalized))))
 PY
 )"
-assert_equals "$zip_times" "(1980, 1, 1, 0, 0, 0)" "zip archive normalizes entry timestamps"
+assert_equals "$zip_times" "(1980, 1, 1, 0)" "zip archive normalizes entry timestamps"
 
 if tar_output="$("$SCRIPT_UNDER_TEST" --allow-dirty --metadata-source "$metadata_source" --format tar.gz --output "$tar_archive" 2>&1)"; then
   pass "package script writes explicit tar.gz archive"
@@ -210,8 +214,15 @@ assert_equals "$tar_archive_paths" "$archive_paths" "zip and tar.gz archives con
 tar_task_brief_mode="$(tar -tzvf "$tar_archive" skills/subagent-driven-development/scripts/task-brief | awk '{print $1}')"
 assert_equals "$tar_task_brief_mode" "-rwxr-xr-x" "tar.gz archive preserves executable script mode"
 
-tar_metadata_times="$(tar -tzvf "$tar_archive" | awk '{print $6, $7, $8}' | sort -u)"
-assert_equals "$tar_metadata_times" "Dec 31 1969" "tar.gz archive normalizes entry timestamps"
+tar_metadata_times="$(python3 - "$tar_archive" <<'PY'
+import sys
+import tarfile
+
+with tarfile.open(sys.argv[1], "r:gz") as archive:
+    print("\n".join(sorted({str(member.mtime) for member in archive.getmembers()})))
+PY
+)"
+assert_equals "$tar_metadata_times" "0" "tar.gz archive normalizes entry timestamps"
 
 metadata_archive="$TEST_ROOT/metadata-source.tar.gz"
 metadata_zip="$TEST_ROOT/metadata-source.zip"

@@ -76,6 +76,14 @@ Code review is not an RPC. Give the reviewer enough time to read the diff, compa
 - In Codex, close the reviewer with `close_agent` once you have integrated or dispositioned the result and no follow-up is needed
 - Only interrupt when priorities changed, the context became stale, or you have strong evidence the reviewer is stuck
 
+For OpenCode / Devin CLI-backed reviewers:
+
+- Prefer attached/streamed invocation so reviewer output remains visible while it runs; for OpenCode, use `opencode run --format json --print-logs ... 2>&1 | tee /tmp/opencode-review.jsonl`.
+- Do not impose a fixed short cap such as 2 minutes and then mark the review as failed or empty.
+- If the process is still running, the review status is `Running` / `In Progress`; keep waiting in 30–60 second intervals and read incremental output.
+- Header-only output, startup banners, or partial logs are not review results.
+- Only mark `no result` / `failed` after the process exits without a usable review, returns an auth/permission/tool error, or the user interrupts / changes priority.
+
 **2.3 Frame the review around approved scope:**
 
 Tell the reviewer to separate:
@@ -157,7 +165,8 @@ You: [Fix progress indicators]
 - Proceed with unfixed Important issues
 - Argue with valid technical feedback
 - Treat a slow reviewer as a failed reviewer after one short wait
-- In Codex, replace subagent waiting with shell waits, ad-hoc polling commands, or other non-agent blocking patterns
+- For native Codex reviewers, replace `wait_agent` with blind shell sleeps or non-agent blocking patterns
+- For CLI-backed reviewers, fire-and-forget without attached output/logs, or stop waiting while the process is still running
 - Interrupt a reviewer just to get a faster but shallower answer
 - Let a reviewer spawn, delegate to, or suggest another reviewer / subagent
 - Let a reviewer convert missing context into tool-limit discussion instead of a direct review result

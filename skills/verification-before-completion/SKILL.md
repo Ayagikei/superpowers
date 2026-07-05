@@ -77,6 +77,8 @@ Notes:
 - `requesting-code-review` is the default independent review workflow when the chosen lane requires or benefits from it. For Standard and Heavy lanes, run it proactively before declaring readiness unless there is a concrete N/A reason.
 - Reviewer subagents for document review and code review are policy-allowed by default and do not need separate user permission. If a specific runtime harness separately demands explicit authorization before spawning one, treat that as an environment exception rather than the repository default.
 - `Review disposition` covers findings from `requesting-code-review`, `mobile-diff-review`, and any other explicit review stream you asked an agent to run.
+- A review process / agent that is still running is neither `Fail` nor `Not Run`; mark it as `⏳ Running` / `In Progress`, keep waiting through the review workflow, and do not claim ready-to-commit / ready-to-merge until it exits and findings are dispositioned unless the user explicitly overrides.
+- Header-only reviewer output, startup banners, or partial logs are not review results. Mark review `Pass` only after reading final reviewer output or an equivalent saved log with a verdict/findings.
 - When TDD applies, use `test-driven-development`. If the project or user explicitly required TDD, upgrade this check from **Conditional** to **Hard Gate**.
 - For testcase docs / backfill, use project convention first. If a structured checklist needs to be drafted or backfilled, use `test-case-summary` and adapt it to any project-specific house style.
 - For client app feature iteration, prefer marking testcase backfill as applicable unless there is a clear reason it does not exist in the team's workflow.
@@ -131,7 +133,7 @@ For standard/heavy work, keep the scorecard structure below:
 Rules:
 - Keep table cells short; move detail to summary bullets
 - If a check is not applicable, say so explicitly instead of silently omitting it
-- If any applicable **Heavy-lane Hard Gate** is `❌ Fail` or `⏳ Not Run`, then `Ready to commit / merge` must be `No` unless the user explicitly authorizes proceeding
+- If any applicable **Heavy-lane Hard Gate** is `❌ Fail`, `⏳ Not Run`, or `⏳ Running`, then `Ready to commit / merge` must be `No` unless the user explicitly authorizes proceeding
 
 ## Explicit Override Protocol
 

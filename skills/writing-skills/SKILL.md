@@ -1,6 +1,6 @@
 ---
 name: writing-skills
-description: Use when creating, editing, or verifying skills
+description: Use when creating, editing, verifying, or improving skills
 ---
 
 # Writing Skills
@@ -14,6 +14,8 @@ description: Use when creating, editing, or verifying skills
 You write test cases (pressure scenarios with subagents), watch them fail (baseline behavior), write the skill (documentation), watch tests pass (agents comply), and refactor (close loopholes).
 
 **Core principle:** If you didn't watch an agent fail without the skill, you don't know if the skill teaches the right thing.
+
+**Quality principle:** A good skill makes agent behavior predictable: the same process every run, even when the output differs.
 
 **REQUIRED BACKGROUND:** You MUST understand superpowers:test-driven-development before using this skill. That skill defines the fundamental RED-GREEN-REFACTOR cycle. This skill adapts TDD to documentation.
 
@@ -141,15 +143,20 @@ Concrete results
 
 **Critical for discovery:** Future agents need to FIND your skill
 
-### 1. Rich Description Field
+### 1. Invocation and Description
 
 **Purpose:** Your agent reads the description to decide which skills to load for a given task. Make it answer: "Should I read this skill right now?"
 
-**Format:** Start with "Use when..." to focus on triggering conditions
+Choose invocation first:
 
-**CRITICAL: Description = When to Use, NOT What the Skill Does**
+- **Model-invoked:** keep a `description`. The agent can discover it, other skills can reference it, and every turn pays the context load of that description.
+- **User-invoked:** set `disable-model-invocation: true`. Only the human can invoke it; the `description` becomes a human-facing summary and does not need `Use when...`.
 
-The description should ONLY describe triggering conditions. Do NOT summarize the skill's process or workflow in the description.
+Use model invocation only when autonomous discovery is valuable. Use user invocation for reference material that the human intentionally asks for.
+
+**For model-invoked skills, Description = When to Use, NOT What the Skill Does.**
+
+The description should describe triggering conditions, symptoms, and leading words. Do NOT summarize the skill's process or workflow.
 
 **Why this matters:** Testing revealed that when a description summarizes the skill's workflow, an agent may follow the description instead of reading the full skill content. A description saying "code review between tasks" caused an agent to do ONE review, even though the skill's flowchart clearly showed TWO reviews (spec compliance then code quality).
 
@@ -171,12 +178,14 @@ description: Use when executing implementation plans with independent tasks in t
 description: Use when implementing any feature or bugfix, before writing implementation code
 ```
 
-**Content:**
+**Model-invoked description content:**
 - Use concrete triggers, symptoms, and situations that signal this skill applies
+- Front-load the leading word or domain term the user/agent will actually say
 - Describe the *problem* (race conditions, inconsistent behavior) not *language-specific symptoms* (setTimeout, sleep)
 - Keep triggers technology-agnostic unless the skill itself is technology-specific
 - If skill is technology-specific, make that explicit in the trigger
 - Write in third person (injected into system prompt)
+- One trigger per distinct branch; collapse synonyms that name the same branch
 - **NEVER summarize the skill's process or workflow**
 
 ```yaml
@@ -257,6 +266,8 @@ You: Searching...
 - Don't repeat what's in cross-referenced skills
 - Don't explain what's obvious from command
 - Don't include multiple examples of same pattern
+- Keep each meaning in one authoritative place; if changing behavior requires editing two spots, the skill has duplication
+- Delete no-op sentences that do not change agent behavior versus the default
 
 **Verification:**
 ```bash
@@ -286,6 +297,45 @@ Use skill name only, with explicit requirement markers:
 - ❌ Bad: `@skills/testing/test-driven-development/SKILL.md` (force-loads, burns context)
 
 **Why no @ links:** `@` syntax force-loads files immediately, consuming 200k+ context before you need them.
+
+## Predictable Skill Design
+
+Use these levers when editing an existing skill or compressing a large one.
+
+### Information Hierarchy
+
+Put content where the agent needs it:
+
+1. **In-skill steps:** ordered actions in `SKILL.md`. Each step ends with a checkable completion criterion.
+2. **In-skill reference:** definitions, rules, and caveats every branch needs.
+3. **Disclosed reference:** separate files reached by a clear context pointer, for heavy material only some branches need.
+
+A completion criterion should be checkable and, when quality depends on coverage, exhaustive. "Every modified model accounted for" drives better legwork than "produce a change list."
+
+Use progressive disclosure to keep `SKILL.md` legible: inline what every path needs; push branch-specific reference behind a linked file. Keep each concept co-located: definition, rules, caveats, and examples under one heading.
+
+### Granularity
+
+Split a skill only when the split earns its cost:
+
+- **By invocation:** create a separate model-invoked skill only when it has a distinct trigger/leading word worth its own description.
+- **By sequence:** split steps when later steps visible in context cause agents to rush the current step.
+
+If many user-invoked reference skills become hard to remember, create one router skill instead of turning all of them model-invoked.
+
+### Leading Words
+
+A leading word is a compact term already in the model's priors that anchors behavior, such as "red" for a failing test or "tracer bullet" for a thin end-to-end slice. Use leading words to replace repeated explanations, and include them in model-invoked descriptions when they are real trigger language.
+
+### Pruning and Failure Modes
+
+Prune sentence by sentence:
+
+- **Duplication:** same meaning in multiple places. Keep one source of truth.
+- **Sediment:** stale material that no longer bears on the skill.
+- **Sprawl:** too much live material in one `SKILL.md`; disclose reference or split by branch.
+- **No-op:** a line that does not change behavior versus the default. Delete it or replace it with a stronger, testable instruction.
+- **Premature completion:** a step ends too early. First sharpen the completion criterion; only split the sequence if the criterion is irreducibly fuzzy and the rush is observed.
 
 ## Flowchart Usage
 
@@ -636,8 +686,9 @@ Deploying untested skills = deploying untested code. It's a violation of quality
 **GREEN Phase - Write Minimal Skill:**
 - [ ] Name uses only letters, numbers, hyphens (no parentheses/special chars)
 - [ ] YAML frontmatter with required `name` and `description` fields (max 1024 chars; see [spec](https://agentskills.io/specification))
-- [ ] Description starts with "Use when..." and includes specific triggers/symptoms
-- [ ] Description written in third person
+- [ ] Invocation mode chosen: model-invoked with trigger description, or user-invoked with `disable-model-invocation: true`
+- [ ] Model-invoked description starts with "Use when..." and includes specific triggers/symptoms
+- [ ] Model-invoked description uses third person, leading words, and no workflow summary
 - [ ] Keywords throughout for search (errors, symptoms, tools)
 - [ ] Clear overview with core principle
 - [ ] Address specific baseline failures identified in RED
@@ -658,6 +709,10 @@ Deploying untested skills = deploying untested code. It's a violation of quality
 - [ ] Small flowchart only if decision non-obvious
 - [ ] Quick reference table
 - [ ] Common mistakes section
+- [ ] Information hierarchy is clear: steps first, shared reference inline, branch-specific reference disclosed
+- [ ] Every step has a checkable completion criterion
+- [ ] Concepts are co-located and each meaning has one source of truth
+- [ ] No duplication, sediment, sprawl, or no-op instructions
 - [ ] No narrative storytelling
 - [ ] Supporting files only for tools or heavy reference
 

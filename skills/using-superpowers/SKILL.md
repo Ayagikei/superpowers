@@ -1,62 +1,58 @@
 ---
 name: using-superpowers
-description: Use when starting any conversation - establishes how to find and use skills, requiring skill invocation before ANY response including clarifying questions
+description: Use when starting a new request or entering a new workflow phase and the relevant skill route is not yet clear
 ---
 
 <SUBAGENT-STOP>
-If you were dispatched as a subagent to execute a specific task, ignore this skill.
+If you were dispatched with a bounded brief, do not load this or other
+orchestration skills. Follow the brief. Load only domain skills explicitly
+named by the controller or essential to the assigned technical work.
 </SUBAGENT-STOP>
 
-<EXTREMELY-IMPORTANT>
-If you think there is even a 1% chance a skill might apply to what you are doing, you ABSOLUTELY MUST invoke the skill.
+# Using Superpowers
 
-IF A SKILL APPLIES TO YOUR TASK, YOU DO NOT HAVE A CHOICE. YOU MUST USE IT.
+Select the smallest workflow that preserves correctness. A phase has one
+workflow owner; domain skills may supplement it without replaying its process.
 
-This is not negotiable. You cannot rationalize your way out of this.
-</EXTREMELY-IMPORTANT>
+## Route by task state
 
-## The Rule
+| Situation | Workflow owner |
+|---|---|
+| Answer, explain, inspect, or read-only review | No process skill unless a domain skill materially helps |
+| Unexpected behavior, failing test, or unclear root cause | `systematic-debugging` |
+| Creative, behavioral, UX, risky, or materially ambiguous change | `brainstorming` |
+| Clear local edit with settled requirements | Direct implementation; use TDD when its scope gate applies |
+| Approved multi-step plan | `executing-plans`, or `subagent-driven-development` when bounded delegation has a clear benefit |
+| Claiming readiness or completion | `verification-before-completion` once at the delivery boundary |
+| Integration or branch cleanup remains | `finishing-a-development-branch` |
 
-**Invoke relevant or requested skills BEFORE any response or action** — including clarifying questions, exploring the codebase, or checking files. If it turns out wrong for the situation, you don't have to use it.
+## Workflow lanes
 
-**Before entering plan mode:** if you haven't already brainstormed, invoke the brainstorming skill first.
+- **Trivial:** local, reversible, directly verifiable. Keep planning and review inline.
+- **Standard:** bounded multi-file or user-visible work. Use a short design/plan,
+  targeted validation, and risk-based review.
+- **Heavy:** high failure cost, unclear architecture, weak automated validation,
+  or security/concurrency/persistence/migration risk. Use durable design/plan,
+  explicit gates, and independent final review.
 
-Then announce "Using [skill] to [purpose]" and follow the skill exactly. If it has a checklist, create a todo per item.
+Choose the lane from observable risk, not code size alone. Upgrade when risk or
+uncertainty grows; downgrade when the problem collapses to a local change.
 
-## Skill Priority
+## Rules
 
-When multiple skills apply, process skills come first — they set the approach, then implementation skills (frontend-design, etc.) carry it out. Brainstorming and systematic-debugging are Superpowers' most common process skills, but the rule holds for any of them.
+- State each instruction once. Preserve safety, permission, evidence, and product invariants.
+- Prefer outcome, constraints, acceptance criteria, evidence, and stop conditions over scripted steps.
+- Do not load every possibly relevant skill. Load a skill when it owns the current
+  phase or contributes technical guidance that changes the work.
+- Re-check routing only when the phase or risk changes.
 
-- "Let's build X" → superpowers:brainstorming first, then implementation skills.
-- "Fix this bug" → superpowers:systematic-debugging first, then domain skills.
-
-## Red Flags
-
-These thoughts mean STOP—you're rationalizing:
-
-| Thought | Reality |
-|---------|---------|
-| "This is just a simple question" | Questions are tasks. Check for skills. |
-| "I need more context first" | Skill check comes BEFORE clarifying questions. |
-| "Let me explore the codebase first" | Skills tell you HOW to explore. Check first. |
-| "I can check git/files quickly" | Files lack conversation context. Check for skills. |
-| "Let me gather information first" | Skills tell you HOW to gather information. |
-| "This doesn't need a formal skill" | If a skill exists, use it. |
-| "I remember this skill" | Skills evolve. Read current version. |
-| "This doesn't count as a task" | Action = task. Check for skills. |
-| "The skill is overkill" | Simple things become complex. Use it. |
-| "I'll just do this one thing first" | Check BEFORE doing anything. |
-| "This feels productive" | Undisciplined action wastes time. Skills prevent this. |
-| "I know what that means" | Knowing the concept ≠ using the skill. Invoke it. |
-
-## Platform Adaptation
-
-If your harness appears here, read its reference file for special instructions:
+## Platform references
 
 - Codex: `references/codex-tools.md`
 - Pi: `references/pi-tools.md`
 - Antigravity: `references/antigravity-tools.md`
 
-## User Instructions
+## Priority
 
-User instructions (CLAUDE.md, AGENTS.md, GEMINI.md, etc, direct requests) take precedence over skills, which in turn override default behavior. Only skip skill workflows or instructions when your human partner has explicitly told you to.
+User and repository instructions override skills. Skills override generic
+defaults only within their declared scope.

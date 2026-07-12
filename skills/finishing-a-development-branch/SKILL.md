@@ -9,20 +9,21 @@ description: Use when implementation is complete, tests pass, and branch integra
 
 Guide completion of development work by presenting clear options and handling chosen workflow.
 
-**Core principle:** Verify tests → Detect environment → Present options → Execute choice → Clean up.
+**Core principle:** Confirm current readiness evidence → Detect environment → Present options → Execute the authorized choice → Clean up safely.
 
 **Announce at start:** "I'm using the finishing-a-development-branch skill to complete this work."
 
 ## The Process
 
-### Step 1: Verify Tests
+### Step 1: Confirm Readiness Evidence
 
-**Before presenting options, verify tests pass:**
+Use the fresh final verification produced by `verification-before-completion`
+when the code and environment have not changed since it ran. Do not replay the
+same suite solely because branch closeout started.
 
-```bash
-# Run project's test suite
-npm test / cargo test / pytest / go test ./...
-```
+Run a new relevant check only when the prior evidence is missing, stale, did not
+cover the integrated state, or the selected operation changes the result being
+validated (for example, a local merge).
 
 **If tests fail:**
 ```
@@ -35,7 +36,7 @@ Cannot proceed with merge/PR until tests pass.
 
 Stop. Don't proceed to Step 2.
 
-**If tests pass:** Continue to Step 2.
+**If readiness evidence passes:** Continue to Step 2.
 
 ### Step 2: Detect Environment
 
@@ -194,7 +195,7 @@ git worktree prune  # Self-healing: clean up any stale registrations
 
 **Skipping test verification**
 - **Problem:** Merge broken code, create failing PR
-- **Fix:** Always verify tests before offering options
+- **Fix:** Confirm current readiness evidence before offering options
 
 **Open-ended questions**
 - **Problem:** "What should I do next?" is ambiguous
@@ -232,7 +233,7 @@ git worktree prune  # Self-healing: clean up any stale registrations
 - Run `git worktree remove` from inside the worktree
 
 **Always:**
-- Verify tests before offering options
+- Confirm current readiness evidence before offering options
 - Detect environment before presenting menu
 - Present exactly 4 options (or 3 for detached HEAD)
 - Get typed confirmation for Option 4

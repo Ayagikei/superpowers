@@ -1,265 +1,59 @@
 ---
 name: verification-before-completion
-description: Use when about to claim work is complete, fixed, passing, or ready to commit or merge
+description: Use when preparing to claim that implementation is complete, fixed, passing, or ready for commit, review, merge, or delivery
 ---
 
 # Verification Before Completion
 
-## Overview
+Make one evidence-backed readiness decision at the delivery boundary. Validation
+must match the changed behavior and remain current after the final code change.
 
-This skill has **two gates**:
+## Evidence reuse
 
-1. **Claim Gate** — fresh evidence before any success claim
-2. **Commit / Merge Gate** — a visible readiness panel before commit, PR, or merge
+Accept targeted evidence produced by a worker when it includes the exact command,
+exit code, key output, affected scope, and no later change invalidated it. Do not
+rerun the same command solely because another agent ran it.
 
-**Core principle:** evidence before claims, readiness before submission.
+Rerun when evidence is missing or suspicious, affected code changed afterward,
+parallel work overlapped the scope, the command did not cover integration, or a
+high-risk invariant needs fresh authoritative evidence.
 
-## The Iron Law
+## Final verification
 
-```
-NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE
-NO READY-TO-COMMIT / READY-TO-MERGE CLAIMS WITHOUT A VISIBLE READINESS PANEL
-```
+Before the readiness claim or an authorized commit:
 
-If you have not run the proving command in this message, do not claim success.
-If you have not shown the user a short scorecard plus summary, do not recommend commit / PR / merge.
+1. Inspect repository status and the complete in-scope diff.
+2. Confirm acceptance criteria and required artifacts are present.
+3. Run one fresh, most-relevant final verification for the integrated change:
+   targeted tests, affected build/typecheck/lint, or a minimal smoke/visual check.
+4. For heavy changes, include the risk-specific check that proves the critical
+   invariant. A full suite is required only when project policy or change impact
+   makes it the smallest credible proof.
+5. Record command, exit code, result, and any unverified boundary.
 
-## Gate 1: Claim Verification
+If validation cannot run, state why and report the best available substitute.
+Do not convert partial evidence into a passing claim.
 
-Before saying work is complete, fixed, or passing:
+## Review applicability
 
-1. **IDENTIFY** the exact command or method that proves the claim
-2. **RUN** it fresh
-3. **READ** full output, exit code, failures, and missing coverage
-4. **REPORT** the actual result with evidence
+- **Trivial:** independent review optional.
+- **Standard:** conditional final review when risk, uncertainty, user impact, or
+  weak validation justifies it.
+- **Heavy:** independent final review is the default gate.
 
-Skip any step = not verified.
+Review is not another test runner. Reuse its findings and prior validation
+evidence. Re-review only open blocking findings after fixes.
 
-## Gate 2: Commit / Merge Readiness
+## Claim contract
 
-Before commit, PR, or merge:
+A completion report states:
 
-1. Classify the task lane: **trivial / standard / heavy**
-2. Decide which checks are **applicable**
-3. Decide which checks are **Hard Gate**, **Conditional**, or **Optional by lane**
-4. Run the applicable checks
-5. Show the user a **readiness panel** scaled to the lane
-6. If any applicable **Hard Gate** is missing or failed, `Ready to commit / merge` must be **No**
-7. Stop unless the user gives an **explicit authorization override**
-
-## Graduated Readiness Lanes
-
-| Lane | Review default | Readiness output | Typical use |
-|---|---|---|---|
-| Trivial | independent review optional by default | lightweight panel | copy tweaks, narrow UI polish, tiny low-risk fixes |
-| Standard | independent review default-on unless clearly unnecessary | short scorecard | bounded multi-file or low-risk behavior changes |
-| Heavy | independent review hard by default | full scorecard | broad, risky, or architecture-sensitive work |
-
-If the work shows any higher-risk signal, upgrade it to that lane before applying readiness rules.
-
-## Default Check Matrix
-
-Use these defaults unless the project has a stricter rule.
-
-| Check | Default Level by Lane | Applies When | Expected Evidence |
-|---|---|---|---|
-| Independent code review via `requesting-code-review` | Trivial: Optional / Standard: Conditional default-on / Heavy: Hard Gate | Most code changes | reviewer result |
-| Review disposition for all review streams (fixed / deferred / rejected with reason) | Trivial: Only if review ran / Standard: Conditional / Heavy: Hard Gate | Any review returned findings | short disposition list |
-| Automated tests / regression | Conditional | Tests exist, logic changed, or bugfix touched covered code | fresh test output |
-| New or updated automated tests | Conditional | New behavior or logic fix where tests are practical | added test + fresh pass |
-| TDD flow followed via `test-driven-development` | Conditional by default | Logic-heavy behavior, repository/domain work, or bugfix where tests are practical | failing test + fresh pass |
-| Testcase backfill / usecase update and status | Conditional | Client app feature iteration, user-facing flow, QA handoff, release validation, or manual acceptance tracking | doc path + updated cases/status |
-| Mobile diff review via `mobile-diff-review` | Conditional | iOS / Android / KMP diff | review result |
-| Mobile MCP acceptance via `ios-simulator-mobile-mcp` / `android-mobile-mcp` | Conditional | Client UI / flow change and simulator or emulator validation is practical | screenshot / evidence path |
-| Automated UI / acceptance flow | Bonus by default | Existing suite exists or automation is practical | fresh run output |
-
-Notes:
-- `requesting-code-review` is the default independent review workflow when the chosen lane requires or benefits from it. For Standard and Heavy lanes, run it proactively before declaring readiness unless there is a concrete N/A reason.
-- Reviewer subagents for document review and code review are policy-allowed by default and do not need separate user permission. If a specific runtime harness separately demands explicit authorization before spawning one, treat that as an environment exception rather than the repository default.
-- `Review disposition` covers findings from `requesting-code-review`, `mobile-diff-review`, and any other explicit review stream you asked an agent to run.
-- A review process / agent that is still running is neither `Fail` nor `Not Run`; mark it as `⏳ Running` / `In Progress`, keep waiting through the review workflow, and do not claim ready-to-commit / ready-to-merge until it exits and findings are dispositioned unless the user explicitly overrides.
-- Header-only reviewer output, startup banners, or partial logs are not review results. Mark review `Pass` only after reading final reviewer output or an equivalent saved log with a verdict/findings.
-- When TDD applies, use `test-driven-development`. If the project or user explicitly required TDD, upgrade this check from **Conditional** to **Hard Gate**.
-- For testcase docs / backfill, use project convention first. If a structured checklist needs to be drafted or backfilled, use `test-case-summary` and adapt it to any project-specific house style.
-- For client app feature iteration, prefer marking testcase backfill as applicable unless there is a clear reason it does not exist in the team's workflow.
-- `Mobile MCP` is **not** a universal blocker. Only mark it applicable for real client validation scenarios.
-
-## Change-Type Heuristics
-
-Use these heuristics to choose the lane faster:
-
-| Change Type | Default Lane | Notes |
-|---|---|---|
-| Docs-only / copy-only / tiny UI polish | Trivial | upgrade if the change affects rules, flows, or multiple surfaces |
-| Bounded feature adjustment / small multi-file change | Standard | independent review default-on unless there is a concrete N/A reason |
-| New feature / broad refactor / state-flow change | Heavy | keep the strongest default gates |
-
-For document review specifically:
-- **Trivial:** no default document review
-- **Standard:** default to exactly one document-review layer, normally **plan review**
-- **Heavy:** default to both spec review and plan review
-
-## Required User-Facing Output
-
-Before any completion claim, ready-to-commit statement, or merge recommendation, output a readiness panel in the user's language:
-
-- **Trivial:** lightweight panel
-- **Standard:** short scorecard + summary
-- **Heavy:** full scorecard + summary
-
-For standard/heavy work, keep the scorecard structure below:
-
-```markdown
-## [Localized Readiness Scorecard Title]
-
-| [Localized Check] | [Localized Level] | [Localized Applies] | [Localized Status] | [Localized Evidence] | [Localized Gap] |
-|---|---|---|---|---|---|
-| Code review | Hard / Conditional / Optional | Yes | ✅ | review done | None |
-| Review fixes | Hard / Conditional | Yes | ⚠️ | 1 deferred | 1 item |
-| Tests | Conditional | Yes | ✅ | 38/38 | None |
-| Testcase backfill | Conditional | No | N/A | — | Not needed |
-| Mobile MCP | Conditional | Yes | ⏳ | not run | simulator check |
-| UI automation | Bonus | No | N/A | — | Not needed |
-
-## [Localized Readiness Summary Title]
-
-- [Localized Robustness Score]: 78/100
-- [Localized Ready to Commit / Merge]: No
-- [Localized Key Gaps]:
-  - Mobile MCP acceptance not run
-  - 1 review item deferred
+```text
+Outcome: <what is complete>
+Validation: <command> -> <exit code and key result>
+Review: pass | not applicable with reason | open findings
+Unverified boundaries: none | <details>
 ```
 
-Rules:
-- Keep table cells short; move detail to summary bullets
-- If a check is not applicable, say so explicitly instead of silently omitting it
-- If any applicable **Heavy-lane Hard Gate** is `❌ Fail`, `⏳ Not Run`, or `⏳ Running`, then `Ready to commit / merge` must be `No` unless the user explicitly authorizes proceeding
-
-## Explicit Override Protocol
-
-Default blockers may still be overridden by the user.
-
-**Valid override requirements:**
-- The user must explicitly authorize continuing with commit / PR / merge
-- The authorization must clearly refer to proceeding despite the shown readiness gaps
-- The user does **not** need a rigid magic phrase
-- The user does **not** need to enumerate every skipped gate individually if the authorization clearly applies to the shown panel
-
-**Valid examples:**
-- `我授权你继续提交`
-- `我授权跳过这个 review，继续 commit`
-- `授权继续提交`
-- `I authorize proceeding with the commit despite the review gap`
-
-**Invalid examples:**
-- `直接提吧`
-- `ship it`
-- `应该没问题`
-
-After a valid override:
-1. Echo back the overridden checks or shown gaps that are being accepted
-2. Echo back that the user explicitly authorized proceeding
-3. Mark overridden rows as `⚠️ Override`
-4. Then proceed only with the action the user authorized
-## Scoring Standard
-
-Use this default weighting unless the project defines its own:
-
-| Level | Weight |
-|---|---|
-| Hard Gate | 5 |
-| Conditional | 3 |
-| Optional | 1 |
-| Bonus | 1 |
-
-Scoring rules:
-- `Pass` = full weight
-- `Fail`, `Not Run`, `Override` = 0
-- `N/A` rows are excluded from the denominator
-- `Robustness Score = earned_weight / applicable_weight * 100`, rounded to the nearest integer
-- Missing applicable Heavy-lane Hard Gates still mean **Not Ready**, even if the score looks decent
-
-Suggested bands:
-- `90-100` Strong
-- `75-89` Good with minor gaps
-- `60-74` Risky, user should review gaps carefully
-- `<60` Not ready
-
-## Common Failures
-
-| Claim | Requires | Not Sufficient |
-|-------|----------|----------------|
-| Tests pass | Fresh test output: 0 failures | Previous run, "should pass" |
-| Bug fixed | Repro or regression evidence | Code changed, assumed fixed |
-| Review complete | Reviewer output + disposition of findings | "I looked at the diff myself" |
-| Mobile flow verified | Mobile MCP evidence or explicit N/A | "UI seems fine" |
-| TDD followed | Failing test first + fresh pass, or documented skip when tests are impractical or greenfield work has no meaningful RED yet | "I added tests afterward" |
-| Testcase backfilled | Doc path + updated cases/status | "Will update later" |
-| Ready to commit | Visible scorecard + summary + applicable Hard Gates passed or explicitly overridden | "Build and MCP passed" in prose |
-
-## Red Flags - STOP
-
-- Using "should", "probably", or "seems to"
-- About to commit / push / PR without a readiness panel
-- Treating every check as universally applicable
-- Showing a table but hiding the real gaps in prose
-- Assuming user intent to override from urgency alone
-- Trusting agent success reports without independent verification
-
-## Rationalization Prevention
-
-| Excuse | Reality |
-|--------|---------|
-| "I already showed a scorecard" | A scorecard without the right checks is still incomplete |
-| "Mobile MCP doesn't matter here" | Mark it `N/A` explicitly and say why |
-| "Review is implied" | Hard Gates must be visible, not implied |
-| "User said hurry" | Hurry is not an override |
-| "The table would be too long" | Keep cells short; move detail to summary bullets |
-| "Different words so rule doesn't apply" | Spirit over letter |
-
-## Short Examples
-
-**Example A: Backend bugfix**
-
-```markdown
-## 验证评分表
-
-| 检查项 | 级别 | 适用 | 状态 | 证据 | 缺口 |
-|---|---|---|---|---|---|
-| Code review | Hard | Yes | ✅ | review ok | None |
-| Review fixes | Hard | Yes | ✅ | all fixed | None |
-| Tests | Conditional | Yes | ✅ | 12/12 | None |
-| TDD flow | Conditional | Yes | ✅ | RED→GREEN | None |
-| Testcase backfill | Conditional | No | N/A | — | Not needed |
-
-## 验证汇总
-
-- 稳健度评分：100/100
-- 可提交：Yes
-- 关键缺口：None
-```
-
-**Example B: Mobile UI flow**
-
-```markdown
-## 验证评分表
-
-| 检查项 | 级别 | 适用 | 状态 | 证据 | 缺口 |
-|---|---|---|---|---|---|
-| Code review | Hard | Yes | ✅ | review ok | None |
-| Review fixes | Hard | Yes | ⚠️ | 1 deferred | 1 item |
-| Mobile diff review | Conditional | Yes | ✅ | review ok | None |
-| Mobile MCP | Conditional | Yes | ⏳ | not run | simulator |
-
-## 验证汇总
-
-- 稳健度评分：50/100
-- 可提交：No
-- 关键缺口：
-  - Mobile MCP 未执行
-  - 1 条 review 建议延后
-```
-
-## The Bottom Line
-
-Run the checks. Read the output. Show a short scorecard. Show a clear summary. Stop on missing Hard Gates unless the user explicitly accepts the risk.
+Do not say fixed, complete, passing, ready, or equivalent before current evidence
+supports that exact claim.

@@ -7,17 +7,24 @@ description: Use when creating, editing, verifying, or improving skills
 
 ## Overview
 
-**Writing skills IS Test-Driven Development applied to process documentation.**
+Writing skills uses evaluation-driven authoring: establish the behavior to
+protect, measure the current baseline when useful, make the smallest guidance
+change, and verify the resulting behavior.
 
 **Personal skills live in your runtime's skills directory** 
 
-You write test cases (pressure scenarios with subagents), watch them fail (baseline behavior), write the skill (documentation), watch tests pass (agents comply), and refactor (close loopholes).
+Use pressure scenarios for discipline failures, application scenarios for
+techniques, retrieval tests for references, and static checks for structural or
+editorial changes.
 
-**Core principle:** If you didn't watch an agent fail without the skill, you don't know if the skill teaches the right thing.
+**Core principle:** Do not manufacture a failure. If an observed trace already
+shows the problem, it is valid baseline evidence. If the current behavior is
+already correct, use a GREEN regression scenario instead of forcing a failure.
 
 **Quality principle:** A good skill makes agent behavior predictable: the same process every run, even when the output differs.
 
-**REQUIRED BACKGROUND:** You MUST understand superpowers:test-driven-development before using this skill. That skill defines the fundamental RED-GREEN-REFACTOR cycle. This skill adapts TDD to documentation.
+`test-driven-development` provides useful vocabulary, but skill evaluation has
+its own lanes and does not require a literal failing RED for every edit.
 
 **Official guidance:** For Anthropic's official skill authoring best practices, see anthropic-best-practices.md. This document provides additional patterns and guidelines that complement the TDD-focused approach in this skill.
 
@@ -29,7 +36,7 @@ A **skill** is a reference guide for proven techniques, patterns, or tools. Skil
 
 **Skills are NOT:** Narratives about how you solved a problem once
 
-## TDD Mapping for Skills
+## Evaluation mapping for skills
 
 | TDD Concept | Skill Creation |
 |-------------|----------------|
@@ -44,7 +51,9 @@ A **skill** is a reference guide for proven techniques, patterns, or tools. Skil
 | **Watch it pass** | Verify agent now complies |
 | **Refactor cycle** | Find new rationalizations → plug → re-verify |
 
-The entire skill creation process follows RED-GREEN-REFACTOR.
+Behavior-changing guidance should have baseline and post-change evidence.
+Pure structural/editorial edits may use static validation plus a focused GREEN
+regression check.
 
 ## When to Create a Skill
 
@@ -421,26 +430,17 @@ pptx/
 ```
 When: Reference material too large for inline
 
-## The Iron Law (Same as TDD)
+## Skill change gate
 
 ```
-NO SKILL WITHOUT A FAILING TEST FIRST
+NO BEHAVIOR-CHANGING SKILL EDIT WITHOUT BASELINE OR REGRESSION EVIDENCE
 ```
 
-This applies to NEW skills AND EDITS to existing skills.
-
-Write skill before testing? Delete it. Start over.
-Edit skill without testing? Same violation.
-
-**No exceptions:**
-- Not for "simple additions"
-- Not for "just adding a section"
-- Not for "documentation updates"
-- Don't keep untested changes as "reference"
-- Don't "adapt" while running tests
-- Delete means delete
-
-**REQUIRED BACKGROUND:** The superpowers:test-driven-development skill explains why this matters. Same principles apply to documentation.
+For a measured failure, capture the existing trace or run a baseline scenario.
+For new guidance with no natural failing behavior, define the desired scenario
+and verify GREEN after the edit. For wording, metadata, links, or formatting that
+does not change behavior, run the relevant static validators. Do not delete valid
+work merely to recreate ceremony.
 
 ## Testing All Skill Types
 
@@ -537,19 +537,18 @@ Don't just state the rule - forbid specific workarounds:
 
 <Bad>
 ```markdown
-Write code before test? Delete it.
+Do not claim completion without evidence.
 ```
 </Bad>
 
 <Good>
 ```markdown
-Write code before test? Delete it. Start over.
+Before claiming completion, cite a current validation command and result.
 
 **No exceptions:**
-- Don't keep it as "reference"
-- Don't "adapt" it while writing tests
-- Don't look at it
-- Delete means delete
+- A worker summary without command output is not validation evidence
+- Stale results do not prove the current code
+- If validation cannot run, report the gap instead of claiming success
 ```
 </Good>
 
@@ -570,9 +569,9 @@ Capture rationalizations from baseline testing (see Testing section below). Ever
 ```markdown
 | Excuse | Reality |
 |--------|---------|
-| "Too simple to test" | Simple code breaks. Test takes 30 seconds. |
-| "I'll test after" | Tests passing immediately prove nothing. |
-| "Tests after achieve same goals" | Tests-after = "what does this do?" Tests-first = "what should this do?" |
+| "The worker said tests pass" | A summary without command/result evidence is incomplete. |
+| "It passed earlier" | Stale evidence does not prove the current diff. |
+| "Validation is probably unnecessary" | Report the gap instead of claiming readiness. |
 ```
 
 ### Create Red Flags List
@@ -580,15 +579,13 @@ Capture rationalizations from baseline testing (see Testing section below). Ever
 Make it easy for agents to self-check when rationalizing:
 
 ```markdown
-## Red Flags - STOP and Start Over
+## Red Flags - STOP Before Claiming Completion
 
-- Code before test
-- "I already manually tested it"
-- "Tests after achieve the same purpose"
-- "It's about spirit not ritual"
-- "This is different because..."
+- No current command/result evidence
+- Validation predates the final change
+- A reported gap is being omitted
 
-**All of these mean: Delete code. Start over with TDD.**
+**All of these mean: validate or report the boundary before claiming completion.**
 ```
 
 ### Update SDO for Violation Symptoms
@@ -599,18 +596,20 @@ Add to description: symptoms of when you're ABOUT to violate the rule:
 description: use when implementing any feature or bugfix, before writing implementation code
 ```
 
-## RED-GREEN-REFACTOR for Skills
+## Baseline-GREEN-Refine for Skills
 
-Follow the TDD cycle:
+Choose the evidence lane that matches the edit:
 
-### RED: Write Failing Test (Baseline)
+### Baseline: observe the current behavior when it is informative
 
 Run pressure scenario with subagent WITHOUT the skill. Document exact behavior:
 - What choices did they make?
 - What rationalizations did they use (verbatim)?
 - Which pressures triggered violations?
 
-This is "watch the test fail" - you must see what agents naturally do before writing the skill.
+An existing real trace can serve as the baseline. If the control does not show a
+failure, do not manufacture one; treat the task as new guidance or a regression
+check and continue to GREEN.
 
 ### GREEN: Write Minimal Skill
 
@@ -618,21 +617,28 @@ Write skill that addresses those specific rationalizations. Don't add extra cont
 
 Run same scenarios WITH skill. Agent should now comply.
 
-### REFACTOR: Close Loopholes
+### Refine: Close Observed Loopholes
 
-Agent found new rationalization? Add explicit counter. Re-test until bulletproof.
+For an observed discipline failure, add the smallest counter for new
+rationalizations and re-test the affected scenario. New guidance and structural
+edits do not need a rationalization loop.
 
 ### Micro-Test Wording Before Full Scenarios
 
-Full pressure-scenario runs are the final gate, but they are slow and expensive per iteration. Verify the wording itself first with micro-tests:
+Pressure scenarios are a final gate only for observed discipline failures. They
+are slow and expensive, so verify wording with micro-tests first:
 
 1. **One fresh-context sample per call** — a raw API call, or a single-shot subagent if you don't have API access. System prompt = the realistic context the guidance will live in (the full skill or prompt template, not the guidance in isolation); user message = a task that tempts the failure.
-2. **Always include a no-guidance control.** If the control doesn't exhibit the failure, there is nothing to fix — stop, don't author the guidance.
-3. **5+ reps per variant.** Single samples lie.
+2. **Use a no-guidance control for a claimed baseline failure.** If neither the
+   control nor an existing trace exhibits it, stop treating the task as a fix.
+   New guidance may continue with a focused GREEN contract.
+3. **Use repeated samples when variance matters.** Five or more reps are for
+   costly behavior-shaping decisions, not every skill edit.
 4. **Manually read every flagged match.** Score programmatically if you like, but template echoes and quoted counter-examples masquerade as hits; automated counts alone overstate both failure and success.
 5. **Variance is a metric.** When guidance lands, reps converge on the same shape. Five different interpretations across five reps means the wording isn't binding — tighten the form before adding words.
 
-Micro-tests verify wording; they do not replace pressure scenarios for discipline skills.
+Micro-tests verify wording. For new guidance, a focused GREEN scenario may be
+the final behavior check. Structural/editorial edits use static validation.
 
 **Testing methodology:** See [testing-skills-with-subagents.md](testing-skills-with-subagents.md) for the complete testing methodology:
 - How to write pressure scenarios
@@ -678,10 +684,10 @@ Deploying untested skills = deploying untested code. It's a violation of quality
 
 **IMPORTANT: Create a todo for EACH checklist item below.**
 
-**RED Phase - Write Failing Test:**
-- [ ] Create pressure scenarios (3+ combined pressures for discipline skills)
-- [ ] Run scenarios WITHOUT skill - document baseline behavior verbatim
-- [ ] Identify patterns in rationalizations/failures
+**Baseline phase:**
+- [ ] Classify the edit: measured behavior failure, new guidance, or structural/editorial
+- [ ] Capture an existing trace or run a control when a real failure is expected
+- [ ] If no natural failure exists, record the desired GREEN regression contract instead
 
 **GREEN Phase - Write Minimal Skill:**
 - [ ] Name uses only letters, numbers, hyphens (no parentheses/special chars)
@@ -691,19 +697,18 @@ Deploying untested skills = deploying untested code. It's a violation of quality
 - [ ] Model-invoked description uses third person, leading words, and no workflow summary
 - [ ] Keywords throughout for search (errors, symptoms, tools)
 - [ ] Clear overview with core principle
-- [ ] Address specific baseline failures identified in RED
+- [ ] Address observed baseline failures, or mark N/A for new guidance/structural edits
 - [ ] Guidance form matches the failure type (see Match the Form to the Failure)
-- [ ] For behavior-shaping guidance: wording micro-tested against a no-guidance control (5+ reps, every flagged match read manually) — N/A for pure reference skills
+- [ ] For a claimed behavior failure: compare against a control or existing trace; use repeated samples when variance materially affects the decision
 - [ ] Code inline OR link to separate file
 - [ ] One excellent example (not multi-language)
 - [ ] Run scenarios WITH skill - verify agents now comply
 
-**REFACTOR Phase - Close Loopholes:**
-- [ ] Identify NEW rationalizations from testing
-- [ ] Add explicit counters (if discipline skill)
-- [ ] Build rationalization table from all test iterations
-- [ ] Create red flags list
-- [ ] Re-test until bulletproof
+**Refine phase (observed discipline failures only):**
+- [ ] Identify new rationalizations from testing
+- [ ] Add the smallest explicit counters
+- [ ] Add a rationalization table/red flags only when repeated failures justify them
+- [ ] Re-test the affected scenario
 
 **Quality Checks:**
 - [ ] Small flowchart only if decision non-obvious
@@ -735,10 +740,6 @@ How future agents find your skill:
 
 ## The Bottom Line
 
-**Creating skills IS TDD for process documentation.**
-
-Same Iron Law: No skill without failing test first.
-Same cycle: RED (baseline) → GREEN (write skill) → REFACTOR (close loopholes).
-Same benefits: Better quality, fewer surprises, bulletproof results.
-
-If you follow TDD for code, follow it for skills. It's the same discipline applied to documentation.
+Skill authoring is evaluation-driven documentation. Use failing baselines for
+observed discipline problems, GREEN contracts for new behavior, and static
+checks for structural edits. Preserve evidence without manufacturing ceremony.

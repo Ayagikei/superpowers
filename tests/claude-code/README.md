@@ -85,29 +85,26 @@ echo "=== All tests passed ==="
 #### test-subagent-driven-development.sh
 Tests skill content and requirements (~2 minutes):
 - Skill loading and accessibility
-- Workflow ordering (spec compliance before code quality)
-- Self-review requirements documented
-- Plan reading efficiency documented
-- Spec compliance reviewer skepticism documented
-- Review loops documented
-- Task context provision documented
+- Delegation benefit gate
+- Default depth 1 and maximum depth 2
+- Worker orchestration-skill budget
+- Risk-based review instead of per-task review
+- Worker validation evidence reuse
+- One fresh final verification
+- No commit or push without authorization
 
 ### Integration Tests (use --integration flag)
 
 #### test-subagent-driven-development-integration.sh
 Full workflow execution test (~10-30 minutes):
 - Creates real test project with Node.js setup
-- Creates implementation plan with 2 tasks
+- Creates one compact delivery plan
 - Executes plan using subagent-driven-development
 - Verifies actual behaviors:
-  - Plan read once at start (not per task)
-  - Full task text provided in subagent prompts
-  - Subagents perform self-review before reporting
-  - Spec compliance review happens before code quality
-  - Spec reviewer reads code independently
   - Working implementation is produced
   - Tests pass
-  - Proper git commits created
+  - No extra operations are added
+  - No unauthorized commits are created
 
 **What it tests:**
 - The workflow actually works end-to-end

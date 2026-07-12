@@ -1,187 +1,59 @@
 ---
 name: requesting-code-review
-description: Use when completing tasks, implementing major features, or before merging to verify work meets requirements
+description: Use when an independent review is requested or risk, uncertainty, or weak validation makes a separate readiness check valuable
 ---
 
 # Requesting Code Review
 
-Dispatch a code reviewer subagent to catch issues before they cascade. The reviewer gets precisely crafted context for evaluation — never your session's history. This keeps the reviewer focused on the work product, not your thought process, and preserves your own context for continued work.
+Use independent review deliberately. The main agent owns scope, finding
+disposition, actual fixes, final verification, and delivery.
 
-**Core principle:** Review deliberately, not uniformly — keep review outcomes inside the approved scope, and scale review ceremony to task complexity.
+## Review gate
 
-## Lane Guidance
-
-Use the same lane model as `brainstorming`, `writing-plans`, and `verification-before-completion`:
-
-| Lane | Default review stance |
+| Lane | Independent review |
 |---|---|
-| Trivial | Independent reviewer optional by default |
-| Standard | Independent reviewer default-on unless clearly unnecessary |
-| Heavy | Independent reviewer is the default gate |
+| Trivial | Optional; skip unless requested or the main agent is uncertain |
+| Standard | Conditional; use at the final boundary when user impact, broad diff, weak validation, or meaningful uncertainty justifies it |
+| Heavy | Default final gate; add a targeted specialist only for a distinct high-risk boundary |
 
-If the task shows any higher-risk signal, upgrade it to the higher lane.
+Do not review after every implementation task by default. A per-deliverable
+review is justified only when that boundary is independently risky and delaying
+feedback would make later work unsafe.
 
-Reviewer subagents for code review are **policy-allowed by default** and do not require separate user permission. If a specific runtime harness separately asks for authorization before spawning one, treat that as an environment exception rather than the repository's default policy.
+## Review brief
 
-## When to Request Review
+Provide only:
 
-**Mandatory:**
-- After each task in subagent-driven development
-- After completing major feature
-- Before merge to main
-- For mobile changes (iOS/Android/KMP), also consult `mobile-diff-review` for platform-specific risk checks
+- approved outcome and non-goals;
+- diff, SHA range, or exact files;
+- binding product/interface constraints;
+- named risk focus;
+- prior validation commands and results;
+- delegation depth `0` because reviewers are leaves.
 
-**Default-on for Standard lane unless clearly unnecessary:**
-- Bounded multi-file changes
-- Low-risk behavior changes with real user impact
-- Completion / commit readiness when `verification-before-completion` marks independent review applicable
+The reviewer is read-only and always a leaf. If a distinct security, platform,
+or persistence specialist is needed, the controller dispatches it separately
+within the overall depth budget. The reviewer does not modify code, expand
+scope, or rerun valid tests merely to duplicate evidence.
 
-**Optional but valuable:**
-- Trivial work when the user still wants an independent check
-- Standard work when a second review pass is helpful beyond the default readiness review
-- When stuck (fresh perspective)
-- Before refactoring (baseline check)
-- After fixing complex bug
+## Output contract
 
-## How to Request
-
-**1. Get git SHAs:**
-```bash
-BASE_SHA=$(git rev-parse HEAD~1)  # or origin/main
-HEAD_SHA=$(git rev-parse HEAD)
+```text
+Findings:
+- [P0-1|P1-1|P2-1] path:line - issue, impact, and concise correction
+Verification gaps: none | <missing evidence>
+Verdict: APPROVE | REVISE
 ```
 
-**2. Dispatch code reviewer subagent:**
+No findings means approval; do not require praise, process narration, or a
+second spec-compliance report that repeats the same evidence.
 
-Dispatch a `general-purpose` subagent, filling the template at [code-reviewer.md](code-reviewer.md)
+## Findings loop
 
-**2.1 Treat reviewer as a leaf node:**
+The main agent classifies each finding as required now, optional follow-up,
+requirement expansion, or rejected with evidence. Fix P0/P1 issues in scope.
+Re-review only the original open blocking IDs plus the changed regression
+boundary. Do not replay a clean whole-diff review, and do not turn P2 suggestions
+into unauthorized work.
 
-When dispatching a reviewer, explicitly lock the reviewer to direct review work:
-- It is the direct review subagent for this request
-- It must not call, delegate to, or suggest any other subagent
-- It must not perform nested review
-- It must not discuss tool/platform limits
-- It must base conclusions only on the approved scope, provided diff / SHAs / file range, and code it directly inspects
-- If something is missing, it should name the missing input briefly and still return the best review possible from available evidence
-
-**2.2 Wait patiently for the review:**
-
-Code review is not an RPC. Give the reviewer enough time to read the diff, compare it to the plan, and write actionable findings.
-
-- If you can continue other non-overlapping work, do that first and let review run in the background
-- If review is on the critical path, wait in longer intervals rather than busy-polling
-- In Codex, record the reviewer `agent_id`, then use `wait_agent` when blocked (prefer one longer wait over short polling)
-- Do not interrupt just because the first `wait_agent` returned no result
-- In Codex, close the reviewer with `close_agent` once you have integrated or dispositioned the result and no follow-up is needed
-- Only interrupt when priorities changed, the context became stale, or you have strong evidence the reviewer is stuck
-
-For OpenCode / Devin CLI-backed reviewers:
-
-- Prefer attached/streamed invocation so reviewer output remains visible while it runs; for OpenCode, use `opencode run --format json --print-logs ... 2>&1 | tee /tmp/opencode-review.jsonl`.
-- Do not impose a fixed short cap such as 2 minutes and then mark the review as failed or empty.
-- If the process is still running, the review status is `Running` / `In Progress`; keep waiting in 30–60 second intervals and read incremental output.
-- Header-only output, startup banners, or partial logs are not review results.
-- Only mark `no result` / `failed` after the process exits without a usable review, returns an auth/permission/tool error, or the user interrupts / changes priority.
-
-**2.3 Frame the review around approved scope:**
-
-Tell the reviewer to separate:
-
-- **In-scope issues** — missing requirements, regressions, correctness problems, test gaps, or production risks that must be fixed for the approved task
-- **Out-of-scope follow-ups** — optional optimizations, refactors, cleanup, or adjacent improvements that may be valid ideas but are **not approved changes**
-- **Requirement expansions** — broader behavior changes, additional scenario support, legacy backfills/compensation/migrations, or other suggestions that materially extend what this task delivers
-
-Technically sound feedback is not automatic approval to expand scope. If a reviewer proposes a larger requirement than the approved task, that still needs user approval.
-
-**2.5 If the diff touches mobile code (iOS/Android/KMP):**
-
-Run an additional pass with `mobile-diff-review` to catch mobile-specific issues (memory leaks, coroutine/thread misuse, main-thread blocking, rendering regressions, and data consistency risks).
-
-**Placeholders:**
-- `{DESCRIPTION}` - Brief summary of what you built
-- `{PLAN_OR_REQUIREMENTS}` - What it should do
-- `{BASE_SHA}` - Starting commit
-- `{HEAD_SHA}` - Ending commit
-
-**3. Act on feedback:**
-- Recommended: Pair with `receiving-code-review` to process feedback before implementation
-- First classify each review item: **required now**, **optional follow-up**, or **requirement expansion**
-- Fix Critical in-scope issues immediately
-- Fix Important in-scope issues before proceeding
-- Note Minor issues for later
-- Do **not** implement optional follow-ups or requirement expansions without explicit user approval
-- If the user approves extra scope, record the approved delta before coding: what is being added, why, affected files, and what tests / verification scope must expand
-- Push back if reviewer is wrong (with reasoning)
-
-## Example
-
-```
-[Just completed Task 2: Add verification function]
-
-You: Let me request code review before proceeding.
-
-BASE_SHA=$(git log --oneline | grep "Task 1" | head -1 | awk '{print $1}')
-HEAD_SHA=$(git rev-parse HEAD)
-
-[Dispatch code reviewer subagent]
-  DESCRIPTION: Added verifyIndex() and repairIndex() with 4 issue types
-  PLAN_OR_REQUIREMENTS: Task 2 from docs/superpowers/plans/deployment-plan.md
-  BASE_SHA: a7981ec
-  HEAD_SHA: 3df7661
-
-[Subagent returns]:
-  Strengths: Clean architecture, real tests
-  Issues:
-    Important: Missing progress indicators
-    Minor: Magic number (100) for reporting interval
-  Assessment: Ready to proceed
-
-You: [Fix progress indicators]
-[Continue to Task 3]
-```
-
-## Integration with Workflows
-
-**Subagent-Driven Development:**
-- Review after EACH task
-- Catch issues before they compound
-- Fix before moving to next task
-
-**Executing Plans:**
-- Review after each task or at natural checkpoints
-- Get feedback, apply, continue
-
-**Ad-Hoc Development:**
-- Review before readiness for Standard / Heavy lanes
-- Review before merge
-- Review when stuck
-
-## Red Flags
-
-**Never:**
-- Silently skip review when the chosen lane still requires or expects it
-- Ignore Critical issues
-- Proceed with unfixed Important issues
-- Argue with valid technical feedback
-- Treat a slow reviewer as a failed reviewer after one short wait
-- For native Codex reviewers, replace `wait_agent` with blind shell sleeps or non-agent blocking patterns
-- For CLI-backed reviewers, fire-and-forget without attached output/logs, or stop waiting while the process is still running
-- Interrupt a reviewer just to get a faster but shallower answer
-- Let a reviewer spawn, delegate to, or suggest another reviewer / subagent
-- Let a reviewer convert missing context into tool-limit discussion instead of a direct review result
-- Treat a reviewer suggestion as approved scope just because it sounds technically right
-- Piggyback an optimization / refactor / cleanup that was not part of the approved task
-- Treat a reviewer-proposed requirement expansion as a normal bugfix just because it belongs to the same defect family
-
-**Lane-specific note:**
-- Trivial work may legitimately skip independent review
-- Standard work should use an independent reviewer by default when review is applicable; skip only with a concrete N/A reason
-- Heavy work should not silently downgrade review without user authorization
-
-**If reviewer wrong:**
-- Push back with technical reasoning
-- Show code/tests that prove it works
-- Request clarification
-
-See template at: [code-reviewer.md](code-reviewer.md)
+Use [code-reviewer.md](code-reviewer.md) as the compact dispatch template.

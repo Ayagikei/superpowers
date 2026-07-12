@@ -1,392 +1,109 @@
 ---
 name: test-driven-development
-description: Use when fixing repository/domain logic or implementing logic-heavy behavior where automated tests are feasible
+description: Use when logic or behavior can be protected by automated tests, especially Repository, Service, domain, data-access, or regression-prone code
 ---
 
-# Test-Driven Development (TDD)
+# Test-Driven Development
 
-## Overview
+Tests protect behavior. Choose the test workflow from the purpose of the change;
+do not manufacture a RED state that proves nothing.
 
-Write the test first. Watch it fail. Write minimal code to pass.
+## Choose the mode
 
-**Core principle:** If you didn't watch the test fail, you don't know if it tests the right thing.
+| Scenario | Required evidence |
+|---|---|
+| Existing bug or wrong behavior on a runnable seam | **Regression TDD:** run a targeted test and observe the expected behavioral RED, then implement and verify GREEN |
+| New Repository/Service/domain/data logic | **Contract GREEN:** define required cases, add the test class and implementation, then verify GREEN; a pre-implementation RED is optional when it would be meaningful |
+| Behavior change on an existing runnable logic seam | Prefer a real assertion RED when it directly expresses the changed rule; otherwise document why Contract GREEN is the clearer proof |
+| Behavior-preserving refactor | Keep existing characterization/regression tests GREEN; add missing coverage where it protects the refactor |
+| UI-only change | Automated UI testing is optional and follows the feasibility/stop rule below |
+| Compile, import, wiring, test-harness, or build fix | Reproducing that exact infrastructure failure is a valid RED |
+| Evaluation, investigation, design, or plan | No RED or implementation test is required |
 
-**Violating the letter of the rules is violating the spirit of the rules.**
+Repository, Service, use-case, reducer, validator, persistence, mapping, and
+business-rule layers are the primary TDD targets because their behavior is
+deterministic and inexpensive to exercise.
 
-## Scope Gate (Decide First)
+## Regression TDD
 
-**Default to TDD when:**
-- Fixing Repository / domain / data-access logic
-- Changing business rules or logic-heavy behavior
-- Refactoring logic with regression risk
+Use this for an existing defect or an existing runnable behavior whose rule is
+changing.
 
-**Consider TDD when feasible:**
-- UI changes with practical automated UI tests
+1. Write the smallest test that expresses the expected behavior.
+2. Run it before the fix.
+3. Confirm it executes and fails for the reported behavioral reason.
+4. Implement the smallest correct fix.
+5. Run the targeted test and relevant nearby tests to GREEN.
+6. Refactor only while the tests stay GREEN.
 
-**You may skip strict TDD / RED (with explicit rationale):**
-- UI-only changes where UI tests are impractical
-- New requirements with minimal logic or mostly copy/markup changes
-- Truly greenfield feature work where no runnable seam exists yet and pre-implementation RED would only fail with missing symbols, compile errors, or "feature not wired" failures
-- Throwaway prototypes, generated code, or config-only changes
+An assertion mismatch, wrong value/state, missing exception, or unexpected
+exception can be a real behavioral RED. A missing symbol, compile error, broken
+fixture, import failure, crashed runner, or unconfigured test target is not a
+behavioral RED.
 
-**If the user explicitly requests TDD:** Do it, regardless of category.
+If implementation already exists, do not delete or destructively revert work to
+perform ceremony. When practical, prove the regression test against the pre-fix
+baseline in an isolated/reversible way. Otherwise report that the test is
+tests-after and do not claim that a behavioral RED was observed.
 
-Thinking "skip TDD just this once" when TDD applies? Stop. That's rationalization.
+## Contract GREEN for new logic
 
-## The Iron Law (When TDD Applies)
+For genuinely new logic, the useful evidence is a durable executable contract,
+not a forced failure caused by code that does not exist yet.
 
+1. Define success, boundary, and error cases.
+2. Add the test class and implementation in the order that makes the seam
+   runnable with the least noise.
+3. Verify the focused tests reach GREEN.
+4. Check that tests assert observable behavior rather than merely construction,
+   mocks, or implementation details.
+5. Run relevant neighboring tests when shared behavior may be affected.
+
+Missing-symbol or not-yet-wired failures may occur during construction, but do
+not label them RED. A meaningful assertion RED is welcome when a runnable seam
+already exists; it is not mandatory for new logic.
+
+## UI feasibility and stop rule
+
+Before adding a UI test, inspect the project for an established unit, snapshot,
+component, instrumentation, simulator/emulator, or accessibility-driven test
+path. Prefer deterministic state and stable selectors.
+
+Attempt automated UI coverage when the existing harness can exercise the
+behavior without disproportionate setup. Stop and downgrade when any applies:
+
+- no maintained UI test target/framework exists;
+- testing requires unapproved dependency, root configuration, CI, signing, or
+  environment changes;
+- two distinct, reasonable setup/runner attempts fail for harness reasons rather
+  than product behavior;
+- the test is inherently flaky or cannot assert the intended state reliably.
+
+Downgrade in this order:
+
+1. extract and unit-test ViewModel/presenter/reducer/state/business logic;
+2. use an existing snapshot/component test path when stable;
+3. build/typecheck plus preview/render/simulator smoke validation;
+4. document a focused manual acceptance check and the automation gap.
+
+Do not hide the downgrade: report what was attempted, why it stopped, and what
+evidence replaced it.
+
+## Test quality
+
+- Assert user- or caller-observable behavior.
+- Prefer real code; mock only external or nondeterministic boundaries.
+- Cover success, boundary, and failure cases that matter to the contract.
+- Keep tests deterministic, focused, and repeatable.
+- Do not broaden production APIs solely to make a test convenient.
+
+## Completion report
+
+State which mode was used and provide the evidence:
+
+```text
+Mode: Regression TDD | Contract GREEN | Refactor GREEN | UI automated | UI downgraded | Infrastructure RED | Evaluation only
+RED: <behavior failure observed> | not required | not observed with reason
+GREEN: <command and result> | not applicable
+Coverage boundary: <what is protected and what remains untested>
 ```
-NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST
-```
-
-Write code before the test? Delete it. Start over.
-
-**No exceptions (when TDD applies):**
-- Don't keep it as "reference"
-- Don't "adapt" it while writing tests
-- Don't look at it
-- Delete means delete
-
-Implement fresh from tests. Period.
-
-## Red-Green-Refactor
-
-```dot
-digraph tdd_cycle {
-    rankdir=LR;
-    red [label="RED\nWrite failing test", shape=box, style=filled, fillcolor="#ffcccc"];
-    verify_red [label="Verify fails\ncorrectly", shape=diamond];
-    green [label="GREEN\nMinimal code", shape=box, style=filled, fillcolor="#ccffcc"];
-    verify_green [label="Verify passes\nAll green", shape=diamond];
-    refactor [label="REFACTOR\nClean up", shape=box, style=filled, fillcolor="#ccccff"];
-    next [label="Next", shape=ellipse];
-
-    red -> verify_red;
-    verify_red -> green [label="yes"];
-    verify_red -> red [label="wrong\nfailure"];
-    green -> verify_green;
-    verify_green -> refactor [label="yes"];
-    verify_green -> green [label="no"];
-    refactor -> verify_green [label="stay\ngreen"];
-    verify_green -> next;
-    next -> red;
-}
-```
-
-### RED - Write Failing Test
-
-Write one minimal test showing what should happen.
-
-<Good>
-```typescript
-test('retries failed operations 3 times', async () => {
-  let attempts = 0;
-  const operation = () => {
-    attempts++;
-    if (attempts < 3) throw new Error('fail');
-    return 'success';
-  };
-
-  const result = await retryOperation(operation);
-
-  expect(result).toBe('success');
-  expect(attempts).toBe(3);
-});
-```
-Clear name, tests real behavior, one thing
-</Good>
-
-<Bad>
-```typescript
-test('retry works', async () => {
-  const mock = jest.fn()
-    .mockRejectedValueOnce(new Error())
-    .mockRejectedValueOnce(new Error())
-    .mockResolvedValueOnce('success');
-  await retryOperation(mock);
-  expect(mock).toHaveBeenCalledTimes(3);
-});
-```
-Vague name, tests mock not code
-</Bad>
-
-**Requirements:**
-- One behavior
-- Clear name
-- Real code (no mocks unless unavoidable)
-
-### Verify RED - Watch It Fail
-
-**MANDATORY. Never skip.**
-
-**Hard rule:** For behavior changes and business-logic changes on an existing runnable seam, RED means the test runs and fails on the expected behavior. A compile error, import error, syntax error, broken test harness, or crashed test runner does **not** count as RED.
-
-**Exceptions:**
-- If the task itself is to fix compilation, imports, or the test environment/harness, reproducing that exact failure is a valid RED state.
-- If the task is truly greenfield feature work and the only possible pre-implementation failure is missing-symbol / compile / not-yet-wired noise, do not force a fake RED. Build the thinnest runnable slice first, then resume normal test-first flow once the seam exists.
-
-```bash
-npm test path/to/test.test.ts
-```
-
-Confirm:
-- Test fails for the expected reason (not random errors)
-- Failure message is expected
-- Fails because the target behavior is missing/wrong (not typos, not broken setup)
-
-| Task type | Valid RED | Not valid RED |
-|-----------|-----------|---------------|
-| Behavior / business-rule change on an existing seam | Assertion failure, wrong output, wrong state, missing exception, unexpected exception | Compile error, import error, syntax error, test bootstrap failure |
-| Truly greenfield feature with no runnable seam yet | Skip strict RED with explicit rationale, create the thinnest runnable slice first, then return to behavior-first tests | Pretending a missing symbol / compile error is a meaningful behavior RED |
-| Fix compile / import issue | The target compile/import failure reproduces | Unrelated assertion failure that doesn't represent the real problem |
-| Fix test harness / fixture / environment | The target setup/bootstrap failure reproduces | A behavior assertion failure unrelated to the harness problem |
-
-**Test passes?** You're testing existing behavior. Fix test.
-
-**Test errors?** If the task is a behavior or logic change on an existing seam, fix the error first and re-run until you get the expected behavior failure. If the task is specifically to fix that compile/import/harness error, that error is the RED state. If the task is greenfield work with no runnable seam yet, document the rationale and skip fake RED until a meaningful seam exists.
-
-### GREEN - Minimal Code
-
-Write simplest code to pass the test.
-
-<Good>
-```typescript
-async function retryOperation<T>(fn: () => Promise<T>): Promise<T> {
-  for (let i = 0; i < 3; i++) {
-    try {
-      return await fn();
-    } catch (e) {
-      if (i === 2) throw e;
-    }
-  }
-  throw new Error('unreachable');
-}
-```
-Just enough to pass
-</Good>
-
-<Bad>
-```typescript
-async function retryOperation<T>(
-  fn: () => Promise<T>,
-  options?: {
-    maxRetries?: number;
-    backoff?: 'linear' | 'exponential';
-    onRetry?: (attempt: number) => void;
-  }
-): Promise<T> {
-  // YAGNI
-}
-```
-Over-engineered
-</Bad>
-
-Don't add features, refactor other code, or "improve" beyond the test.
-
-### Verify GREEN - Watch It Pass
-
-**MANDATORY.**
-
-```bash
-npm test path/to/test.test.ts
-```
-
-Confirm:
-- Test passes
-- Other tests still pass
-- Output pristine (no errors, warnings)
-
-**Test fails?** Fix code, not test.
-
-**Other tests fail?** Fix now.
-
-### REFACTOR - Clean Up
-
-After green only:
-- Remove duplication
-- Improve names
-- Extract helpers
-
-Keep tests green. Don't add behavior.
-
-### Repeat
-
-Next failing test for next feature.
-
-## Good Tests
-
-| Quality | Good | Bad |
-|---------|------|-----|
-| **Minimal** | One thing. "and" in name? Split it. | `test('validates email and domain and whitespace')` |
-| **Clear** | Name describes behavior | `test('test1')` |
-| **Shows intent** | Demonstrates desired API | Obscures what code should do |
-
-## Why Order Matters
-
-**"I'll write tests after to verify it works"**
-
-Tests written after code pass immediately. Passing immediately proves nothing:
-- Might test wrong thing
-- Might test implementation, not behavior
-- Might miss edge cases you forgot
-- You never saw it catch the bug
-
-Test-first forces you to see the test fail, proving it actually tests something.
-
-**"I already manually tested all the edge cases"**
-
-Manual testing is ad-hoc. You think you tested everything but:
-- No record of what you tested
-- Can't re-run when code changes
-- Easy to forget cases under pressure
-- "It worked when I tried it" ≠ comprehensive
-
-Automated tests are systematic. They run the same way every time.
-
-**"Deleting X hours of work is wasteful"**
-
-Sunk cost fallacy. The time is already gone. Your choice now:
-- Delete and rewrite with TDD (X more hours, high confidence)
-- Keep it and add tests after (30 min, low confidence, likely bugs)
-
-The "waste" is keeping code you can't trust. Working code without real tests is technical debt.
-
-**"TDD is dogmatic, being pragmatic means adapting"**
-
-TDD IS pragmatic:
-- Finds bugs before commit (faster than debugging after)
-- Prevents regressions (tests catch breaks immediately)
-- Documents behavior (tests show how to use code)
-- Enables refactoring (change freely, tests catch breaks)
-
-"Pragmatic" shortcuts = debugging in production = slower.
-
-**"Tests after achieve the same goals - it's spirit not ritual"**
-
-No. Tests-after answer "What does this do?" Tests-first answer "What should this do?"
-
-Tests-after are biased by your implementation. You test what you built, not what's required. You verify remembered edge cases, not discovered ones.
-
-Tests-first force edge case discovery before implementing. Tests-after verify you remembered everything (you didn't).
-
-30 minutes of tests after ≠ TDD. You get coverage, lose proof tests work.
-
-## Common Rationalizations
-
-| Excuse | Reality |
-|--------|---------|
-| "Too simple to test" | Simple code breaks. Test takes 30 seconds. |
-| "I'll test after" | Tests passing immediately prove nothing. |
-| "Tests after achieve same goals" | Tests-after = "what does this do?" Tests-first = "what should this do?" |
-| "Already manually tested" | Ad-hoc ≠ systematic. No record, can't re-run. |
-| "Deleting X hours is wasteful" | Sunk cost fallacy. Keeping unverified code is technical debt. |
-| "Keep as reference, write tests first" | You'll adapt it. That's testing after. Delete means delete. |
-| "Need to explore first" | Fine. Throw away exploration, start with TDD. |
-| "Test hard = design unclear" | Listen to test. Hard to test = hard to use. |
-| "TDD will slow me down" | TDD faster than debugging. Pragmatic = test-first. |
-| "Manual test faster" | Manual doesn't prove edge cases. You'll re-test every change. |
-| "Existing code has no tests" | You're improving it. Add tests for existing code. |
-| "The test doesn't compile, so RED is satisfied" | Only when the task is to fix compilation/imports/test harness itself. For behavior changes on an existing seam, you still need a running test with a behavior failure. For greenfield work with no seam yet, skip fake RED instead of pretending the compile error is useful. |
-
-## Red Flags - STOP and Start Over (When TDD Applies)
-
-- Code before test
-- Test after implementation
-- Test passes immediately
-- Can't explain why test failed
-- Tests added "later"
-- Rationalizing "just this once"
-- "I already manually tested it"
-- "Tests after achieve the same purpose"
-- "It's about spirit not ritual"
-- "Keep as reference" or "adapt existing code"
-- "Already spent X hours, deleting is wasteful"
-- "TDD is dogmatic, I'm being pragmatic"
-- Treating compile/import/test-runner failure as RED for a behavior change on an existing seam
-- "This is different because..."
-
-**All of these mean: Delete code. Start over with TDD.**
-
-## Example: Bug Fix
-
-**Bug:** Empty email accepted
-
-**RED**
-```typescript
-test('rejects empty email', async () => {
-  const result = await submitForm({ email: '' });
-  expect(result.error).toBe('Email required');
-});
-```
-
-**Verify RED**
-```bash
-$ npm test
-FAIL: expected 'Email required', got undefined
-```
-
-**GREEN**
-```typescript
-function submitForm(data: FormData) {
-  if (!data.email?.trim()) {
-    return { error: 'Email required' };
-  }
-  // ...
-}
-```
-
-**Verify GREEN**
-```bash
-$ npm test
-PASS
-```
-
-**REFACTOR**
-Extract validation for multiple fields if needed.
-
-## Verification Checklist
-
-When TDD applies, before marking work complete:
-
-- [ ] Every new function/method has a test
-- [ ] Watched each test fail before implementing
-- [ ] Each RED state matched the task: behavior failure for behavior changes on an existing seam, documented skip for greenfield work with no meaningful RED yet, or the target compile/import/harness failure for infrastructure fixes
-- [ ] Wrote minimal code to pass each test
-- [ ] All tests pass
-- [ ] Output pristine (no errors, warnings)
-- [ ] Tests use real code (mocks only if unavoidable)
-- [ ] Edge cases and errors covered
-
-If TDD applied and you can't check all boxes, you skipped TDD. Start over.
-
-## When Stuck
-
-| Problem | Solution |
-|---------|----------|
-| Don't know how to test | Write wished-for API. Write assertion first. Ask your human partner. |
-| Test too complicated | Design too complicated. Simplify interface. |
-| Must mock everything | Code too coupled. Use dependency injection. |
-| Test setup huge | Extract helpers. Still complex? Simplify design. |
-
-## Debugging Integration
-
-Repository/domain logic bug found? Write failing test reproducing it. Follow TDD cycle. Test proves fix and prevents regression. For UI-only bugs, follow the scope gate first.
-
-When TDD applies, never fix bugs without a test.
-
-## Testing Anti-Patterns
-
-When adding mocks or test utilities, read [testing-anti-patterns.md](testing-anti-patterns.md) to avoid common pitfalls:
-- Testing mock behavior instead of real behavior
-- Adding test-only methods to production classes
-- Mocking without understanding dependencies
-
-## Final Rule
-
-```
-When TDD applies:
-  Production code → test exists and failed first
-  Otherwise → not TDD
-```
-
-No exceptions when TDD applies, except the explicit scope-gate cases above.

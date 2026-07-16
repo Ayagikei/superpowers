@@ -30,8 +30,13 @@ Cover only what changes implementation decisions:
 - acceptance criteria and validation strategy;
 - open questions that would materially change the result.
 
-Use the visual companion only when seeing a diagram or mockup would make a real
-decision easier. Do not offer it for text-only tradeoffs.
+Use the visual companion only when seeing a diagram, mockup, or side-by-side
+layout would make a real decision easier. When presenting the relevant design
+alternatives, include the visual-companion opt-in in that same choice message;
+do not interrupt the workflow with a separate opt-in turn. If accepted, open
+the companion and show the alternatives before asking for the final selection.
+If declined, continue with the text choices. Do not offer it for text-only
+tradeoffs or before a concrete visual decision exists.
 
 ## Approval and artifacts
 

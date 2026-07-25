@@ -79,6 +79,23 @@ When durable tracking is active, update its existing `task_plan.md` and
 dispatch prompts. Hand workers the smallest task brief or file path that carries
 their requirements.
 
+When the runtime needs file-backed SDD artifacts such as briefs, reports, or
+review packages, scope the transient workspace to the approved plan:
+
+```bash
+skills/subagent-driven-development/scripts/sdd-workspace <plan-file>
+```
+
+The plan basename must be unique within the worktree. Treat this workspace as
+temporary controller state, not as another product plan. Do not delete it
+without the user's authorization.
+
+For an open blocking finding, resume the original implementer when the runtime
+supports it, then run a scoped re-review of that finding and the fix diff.
+Cap the loop at five rounds, stop earlier when the same finding repeats without
+material progress, and return product, architecture, or scope decisions to the
+main agent. Do not turn this into a mandatory per-task review loop.
+
 ## Worker report
 
 ```text

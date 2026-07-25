@@ -97,6 +97,11 @@ evidence replaced it.
 - Keep tests deterministic, focused, and repeatable.
 - Do not broaden production APIs solely to make a test convenient.
 
+When writing or changing tests, mocks, fixtures, or test helpers, read
+[writing-good-tests.md](writing-good-tests.md). Name the production change that
+would make the test fail, assert real behavior, and keep test-only APIs out of
+production code.
+
 ## Completion report
 
 State which mode was used and provide the evidence:

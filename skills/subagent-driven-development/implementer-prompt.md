@@ -19,6 +19,10 @@ needed, or validation repeatedly fails outside the assigned boundary. Do not
 commit, push, branch, change dependencies, or edit outside scope unless the
 brief explicitly authorizes it.
 
+If this is a resumed fix round, address only the listed open findings and report
+the covering test evidence for the amended code. Do not reopen already accepted
+requirements or unrelated code.
+
 Return exactly:
 Status: DONE | DONE_WITH_CONCERNS | NEEDS_CONTEXT | BLOCKED
 Files changed: <paths and purpose>

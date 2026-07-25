@@ -26,6 +26,14 @@ output=$(ask "Does SDD require an independent reviewer after every task? Explain
 assert_contains "$output" "no\|not.*every\|risk" "Per-task review is not mandatory"
 assert_contains "$output" "Heavy\|heavy" "Heavy lane gets final review"
 
+output=$(ask "After an SDD reviewer reports an open blocking finding, what should be resumed and what should the re-review cover?")
+assert_contains "$output" "original implementer\|same implementer\|resume" "Open blockers resume the implementer when supported"
+assert_contains "$output" "scoped\|finding.*fix\|fix.*finding" "Re-review is scoped to the blocker and fix"
+
+output=$(ask "What is the SDD blocking-finding fix-loop limit, and when should it stop before that limit?")
+assert_contains "$output" "five\|5" "Blocking-finding loop is capped at five rounds"
+assert_contains "$output" "same finding\|no progress\|repeat" "Repeated findings without progress stop early"
+
 output=$(ask "A worker reports the exact test command, exit code 0, key output, and no later code changed. Must the controller rerun that same targeted test?")
 assert_contains "$output" "no\|reuse\|trust\|not rerun\|do not rerun" "Valid worker evidence is reused"
 

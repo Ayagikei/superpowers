@@ -1,22 +1,48 @@
 #!/usr/bin/env bash
-# Resolve and ensure the working-tree directory SDD uses for its short-lived
-# artifacts: task briefs, implementer reports, review packages, and the
-# progress ledger. Print the directory's absolute path.
+# Resolve and ensure the working-tree directory SDD uses for one plan's
+# short-lived artifacts: task briefs, implementer reports, and review packages.
+# Print the plan directory's absolute path.
+#
+# One directory per plan (.superpowers/sdd/<plan-basename>-<path-hash>/) so a follow-up
+# plan in the same working tree can never read or overwrite another plan's
+# artifacts. The path hash prevents plans with the same basename in different
+# directories from colliding.
 #
 # The workspace lives in the working tree (not under .git/) because Claude Code
 # treats .git/ as a protected path and denies agent writes there — which blocks
 # an implementer subagent from writing its report file. A self-ignoring
-# .gitignore keeps the workspace out of `git status` and out of accidental
-# commits without modifying any tracked file.
+# .gitignore at .superpowers/sdd/ keeps every plan's workspace out of
+# `git status` and out of accidental commits without modifying any tracked file.
 #
 # Single source of truth for the workspace location, so task-brief and
 # review-package cannot drift to different directories.
 #
-# Usage: sdd-workspace
+# Usage: sdd-workspace PLAN_FILE
 set -euo pipefail
 
+if [ $# -ne 1 ]; then
+  echo "usage: sdd-workspace PLAN_FILE" >&2
+  exit 2
+fi
+
+plan=$1
+[ -f "$plan" ] || { echo "no such plan file: $plan" >&2; exit 2; }
+
 root=$(git rev-parse --show-toplevel)
-dir="$root/.superpowers/sdd"
+plan_dir=$(cd "$(dirname "$plan")" && pwd -P)
+plan_abs="$plan_dir/$(basename "$plan")"
+case "$plan_abs" in
+  "$root"/*) plan_rel=${plan_abs#"$root"/} ;;
+  *) echo "plan file must be inside the repository: $plan" >&2; exit 2 ;;
+esac
+
+slug=$(basename "$plan" .md | tr -c 'A-Za-z0-9._-' '-')
+[ -n "$slug" ] && [ "$slug" != "." ] && [ "$slug" != ".." ] \
+  || { echo "cannot derive a workspace name from: $plan" >&2; exit 2; }
+
+path_hash=$(printf '%s' "$plan_rel" | git hash-object --stdin | cut -c1-10)
+base="$root/.superpowers/sdd"
+dir="$base/$slug-$path_hash"
 mkdir -p "$dir"
-printf '*\n' > "$dir/.gitignore"
+printf '*\n' > "$base/.gitignore"
 cd "$dir" && pwd

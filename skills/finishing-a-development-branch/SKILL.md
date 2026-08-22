@@ -15,7 +15,7 @@ Guide completion of development work by presenting clear options and handling ch
 
 ### Step 1: Confirm Readiness Evidence
 
-Use the fresh final verification produced by `verification-before-completion`
+Use the current final verification produced by `verification-before-completion`
 when the code and environment have not changed since it ran. Do not replay the
 same suite solely because branch closeout started.
 

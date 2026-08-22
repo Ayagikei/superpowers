@@ -53,9 +53,11 @@ work clearly requires it.
    change invalidated it.
 6. Rerun targeted validation only when evidence is missing or suspicious, the
    affected code changed afterward, workers overlapped, or integration/high-risk
-   behavior requires fresh evidence.
-7. After all deliverables, run one fresh final verification appropriate to the
-   whole change before claiming readiness or committing.
+   behavior still has no current result. Incremental/cached toolchain hits are
+   valid evidence. Do not force-rebuild by default.
+7. After all deliverables, confirm one current final verification appropriate to
+   the whole change before claiming readiness or committing. Reuse still-valid
+   worker evidence instead of replaying the same command.
 
 ## Review policy
 

@@ -18,8 +18,9 @@ Execute the approved outcome end to end while preserving scope and evidence.
    side effect requires new authority.
 4. Run targeted validation as behavior becomes available. Reuse still-valid
    evidence rather than replaying the same command at every checkpoint.
-5. Inspect the complete diff and run one fresh final verification before
-   claiming readiness or performing an authorized commit.
+5. Inspect the complete diff and confirm one current final verification before
+   claiming readiness or performing an authorized commit. Reuse still-valid
+   evidence; do not force-rebuild or replay the same command.
 
 Use a subagent for a bounded exploration, implementation, verification, or
 review only when it has a concrete speed, isolation, or quality benefit. Loading

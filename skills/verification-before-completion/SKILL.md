@@ -5,10 +5,13 @@ description: Use when preparing to claim that implementation is complete, fixed,
 
 # Verification Before Completion
 
-Make one evidence-backed readiness decision at the delivery boundary. Validation
-must match the changed behavior and remain current after the final code change.
-Current means the last relevant result still covers the present sources. It does
-not mean cache-busting, cleaning, or replaying the same command.
+Make an evidence-backed decision for the scope being delivered. Module acceptance
+is not whole-feature acceptance: verify the changed behavior and direct callers;
+carry deferred integration, platform, and device checks on the final checklist.
+A large project does not make every adapter a separate heavy delivery gate.
+
+Evidence is current when it still covers the present sources—not when every
+command was rerun. Apply the host's incremental-delivery policy when present.
 
 ## Evidence reuse
 

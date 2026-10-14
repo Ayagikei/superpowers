@@ -38,7 +38,7 @@ PLUGIN_DIR=$(cd "$SCRIPT_DIR/../.." && pwd)
 OUTPUT_FILE="$TEST_PROJECT/claude-output.txt"
 PROMPT='Execute docs/plans/delivery-plan.md using subagent-driven-development.
 Use bounded delegation only where beneficial. Do not commit. Reuse complete worker
-test evidence, inspect the integrated diff, and run one fresh final verification.'
+test evidence, inspect the integrated diff, and confirm one current final verification.'
 
 timeout 1800 claude -p "$PROMPT" --plugin-dir "$PLUGIN_DIR" \
   --allowed-tools=all --permission-mode bypassPermissions 2>&1 | tee "$OUTPUT_FILE"

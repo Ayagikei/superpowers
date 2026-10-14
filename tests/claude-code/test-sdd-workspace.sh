@@ -104,6 +104,52 @@ PLAN
         echo "    b: $shared_b"
     fi
 
+    # --- canonical path: symlink cwd and alternate spellings share one workspace ---
+    local link="$TEST_ROOT/repo-link"
+    ln -s "$repo" "$link"
+    local via_link via_abs via_dotdot
+    via_link="$(cd "$link" && "$SDD_SCRIPTS/sdd-workspace" a/shared.md)"
+    via_abs="$(cd "$link" && "$SDD_SCRIPTS/sdd-workspace" "$link/a/shared.md")"
+    via_dotdot="$(cd "$link/b" && "$SDD_SCRIPTS/sdd-workspace" ../a/shared.md)"
+    local canon
+    canon="$(cd "$repo" && pwd -P)"
+    if [[ "$via_link" == "$shared_a" && "$via_abs" == "$shared_a" && "$via_dotdot" == "$shared_a" \
+        && "$via_link" == "$canon/.superpowers/sdd/shared-"* && "$via_link" != *$'\n'* ]]; then
+        pass "symlink cwd and alternate spellings resolve to one canonical workspace"
+    else
+        fail "symlink cwd and alternate spellings resolve to one canonical workspace"
+        echo "    physical: $shared_a"
+        echo "    link:     $via_link"
+        echo "    abs:      $via_abs"
+        echo "    dotdot:   $via_dotdot"
+        echo "    canon:    $canon"
+    fi
+
+    mkdir -p "$TEST_ROOT/decoy/a"
+    printf 'decoy\n' > "$TEST_ROOT/decoy/a/shared.md"
+    local via_cdpath cdpath_rc=0
+    via_cdpath="$(cd "$link" && CDPATH="$TEST_ROOT/decoy:." "$SDD_SCRIPTS/sdd-workspace" a/shared.md 2>"$TEST_ROOT/cdpath.err")" || cdpath_rc=$?
+    if [[ "$cdpath_rc" -eq 0 && "$via_cdpath" == "$shared_a" && "$via_cdpath" != *$'\n'* ]]; then
+        pass "CDPATH does not redirect or pollute canonical workspace resolution"
+    else
+        fail "CDPATH does not redirect or pollute canonical workspace resolution"
+        echo "    rc:  $cdpath_rc"
+        echo "    got: $via_cdpath"
+        echo "    err: $(cat "$TEST_ROOT/cdpath.err" 2>/dev/null)"
+    fi
+
+    mkdir -p "$TEST_ROOT/outside"
+    printf '# Out\n\n## Task 1: Out\n\nOut.\n' > "$TEST_ROOT/outside/plan.md"
+    ln -s "$TEST_ROOT/outside" "$repo/outside-link"
+    rc=0
+    (cd "$repo" && "$SDD_SCRIPTS/sdd-workspace" outside-link/plan.md >/dev/null 2>&1) || rc=$?
+    if [[ "$rc" -eq 2 ]]; then
+        pass "a plan whose physical path is outside the repo is rejected"
+    else
+        fail "a plan whose physical path is outside the repo is rejected"
+        echo "    exit: $rc"
+    fi
+
     if [[ -f "$repo/.superpowers/sdd/.gitignore" && "$(cat "$repo/.superpowers/sdd/.gitignore")" == "*" ]]; then
         pass "self-ignoring .gitignore created at .superpowers/sdd/ with '*'"
     else
@@ -179,6 +225,30 @@ PLAN
         echo "    got: $rp_explicit"
     fi
 
+    # --- range guards: BASE must be an ancestor of HEAD, range must be non-empty ---
+    local divergent
+    divergent="$(cd "$repo" && git "${git_id[@]}" commit-tree 'HEAD~1^{tree}' -p 'HEAD~1' -m divergent)"
+    rc=0
+    local guard_err
+    guard_err="$(cd "$repo" && "$SDD_SCRIPTS/review-package" plan-a.md "$divergent" HEAD 2>&1 >/dev/null)" || rc=$?
+    if [[ "$rc" -eq 3 && "$guard_err" == *"not a descendant"* ]]; then
+        pass "review-package rejects a BASE that is not an ancestor of HEAD with exit 3"
+    else
+        fail "review-package rejects a BASE that is not an ancestor of HEAD with exit 3"
+        echo "    exit: $rc"
+        echo "    stderr: $guard_err"
+    fi
+
+    rc=0
+    guard_err="$(cd "$repo" && "$SDD_SCRIPTS/review-package" plan-a.md HEAD HEAD 2>&1 >/dev/null)" || rc=$?
+    if [[ "$rc" -eq 3 && "$guard_err" == *"empty commit range"* ]]; then
+        pass "review-package rejects an empty BASE..HEAD range with exit 3"
+    else
+        fail "review-package rejects an empty BASE..HEAD range with exit 3"
+        echo "    exit: $rc"
+        echo "    stderr: $guard_err"
+    fi
+
     # --- Worktree isolation: a linked worktree resolves its own workspace ---
     local wt="$TEST_ROOT/wt"
     ( cd "$repo" && git worktree add -q "$wt" -b wt-feature )
@@ -201,6 +271,50 @@ PLAN
     else
         fail "worktree workspace invisible to git status"
         echo "    status: $wt_status"
+    fi
+
+    # --- helpers survive a mode-stripping extractor dropping exec bits (#2040) ---
+    local stripped="$TEST_ROOT/stripped-scripts"
+    mkdir -p "$stripped"
+    cp "$SDD_SCRIPTS/sdd-workspace" "$SDD_SCRIPTS/task-brief" "$SDD_SCRIPTS/review-package" "$stripped/"
+    chmod -x "$stripped"/*
+    local noexec_out noexec_rc=0
+    noexec_out="$(cd "$repo" && bash "$stripped/task-brief" plan-b.md 1 2>&1)" || noexec_rc=$?
+    if [[ "$noexec_rc" -eq 0 && -f "$dir_b/task-1-brief.md" ]]; then
+        pass "task-brief works with no exec bit on sdd-workspace"
+    else
+        fail "task-brief works with no exec bit on sdd-workspace"
+        echo "    rc: $noexec_rc"
+        echo "    output: $noexec_out"
+    fi
+
+    local rp_noexec rp_noexec_rc=0 rp_noexec_path
+    rp_noexec="$(cd "$repo" && bash "$stripped/review-package" plan-b.md HEAD~1 HEAD 2>&1)" || rp_noexec_rc=$?
+    rp_noexec_path="$(printf '%s\n' "$rp_noexec" | sed -n 's/^wrote \(.*\): [0-9].*$/\1/p')"
+    if [[ "$rp_noexec_rc" -eq 0 && -f "$rp_noexec_path" && "$rp_noexec_path" == "$dir_b"/review-*.diff ]]; then
+        pass "review-package works with no exec bit on sdd-workspace"
+    else
+        fail "review-package works with no exec bit on sdd-workspace"
+        echo "    rc: $rp_noexec_rc"
+        echo "    output: $rp_noexec"
+    fi
+
+    # --- A repo's own committed .superpowers/sdd/.gitignore is left alone ---
+    git init -q -b main "$TEST_ROOT/own-ignore"
+    local own own_ignore
+    own="$(cd "$TEST_ROOT/own-ignore" && git rev-parse --show-toplevel)"
+    own_ignore=$'*\n!.gitignore\n!*/\n!*/progress.md'
+    mkdir -p "$own/.superpowers/sdd"
+    printf '%s\n' "$own_ignore" > "$own/.superpowers/sdd/.gitignore"
+    printf '# Plan\n\n## Task 1: One\n\nOne.\n' > "$own/plan.md"
+    (cd "$own" && git add -A && git -c user.name=t -c user.email=t@t commit -qm init)
+    (cd "$own" && "$SDD_SCRIPTS/sdd-workspace" plan.md >/dev/null)
+    if [[ "$(cat "$own/.superpowers/sdd/.gitignore")" == "$own_ignore" \
+        && -z "$(cd "$own" && git status --porcelain -- .superpowers/sdd/.gitignore)" ]]; then
+        pass "an existing .superpowers/sdd/.gitignore is not overwritten"
+    else
+        fail "an existing .superpowers/sdd/.gitignore is not overwritten"
+        echo "    now: $(cat "$own/.superpowers/sdd/.gitignore")"
     fi
 
     echo ""

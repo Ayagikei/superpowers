@@ -92,11 +92,13 @@ The plan basename must be unique within the worktree. Treat this workspace as
 temporary controller state, not as another product plan. Do not delete it
 without the user's authorization.
 
-For an open blocking finding, resume the original implementer when the runtime
-supports it, then run a scoped re-review of that finding and the fix diff.
-Cap the loop at five rounds, stop earlier when the same finding repeats without
-material progress, and return product, architecture, or scope decisions to the
-main agent. Do not turn this into a mandatory per-task review loop.
+For an open blocker, resume the original implementer only while its evidence
+remains reliable; the controller may assign a fresh replacement otherwise.
+Use at most three independent review rounds per coherent deliverable (or the
+stricter runtime policy): initial review, then open blockers and new P0/P1
+regressions only. At the cap, stop the review loop—not the correctness work.
+The controller verifies a bounded remaining fix or reports an unresolved
+blocker; the cap never turns a failing result into approval.
 
 ## Worker report
 

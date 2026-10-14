@@ -90,7 +90,7 @@ Tests skill content and requirements (~2 minutes):
 - Worker orchestration-skill budget
 - Risk-based review instead of per-task review
 - Worker validation evidence reuse
-- One fresh final verification
+- One current final verification, reusing valid evidence
 - No commit or push without authorization
 
 ### Integration Tests (use --integration flag)

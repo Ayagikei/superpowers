@@ -26,19 +26,20 @@ output=$(ask "Does SDD require an independent reviewer after every task? Explain
 assert_contains "$output" "no\|not.*every\|risk" "Per-task review is not mandatory"
 assert_contains "$output" "Heavy\|heavy" "Heavy lane gets final review"
 
-output=$(ask "After an SDD reviewer reports an open blocking finding, what should be resumed and what should the re-review cover?")
-assert_contains "$output" "original implementer\|same implementer\|resume" "Open blockers resume the implementer when supported"
-assert_contains "$output" "scoped\|finding.*fix\|fix.*finding" "Re-review is scoped to the blocker and fix"
+output=$(ask "After an SDD reviewer reports an open blocking finding, when should the original implementer be resumed, and when may it be replaced? What should the re-review cover?")
+assert_contains "$output" "reliable\|trustworthy\|trust.*evidence\|evidence.*trust" "Original implementer is resumed only while evidence remains reliable"
+assert_contains "$output" "replacement\|fresh.*worker\|new.*implementer" "Unreliable evidence permits a fresh replacement"
+assert_contains "$output" "scoped\|finding.*fix\|fix.*finding\|open block" "Re-review is scoped to the blocker and fix"
 
-output=$(ask "What is the SDD blocking-finding fix-loop limit, and when should it stop before that limit?")
-assert_contains "$output" "five\|5" "Blocking-finding loop is capped at five rounds"
-assert_contains "$output" "same finding\|no progress\|repeat" "Repeated findings without progress stop early"
+output=$(ask "What is the SDD independent-review round limit, and does reaching that cap turn an unresolved blocker into approval?")
+assert_contains "$output" "three\|3" "Independent review is capped at three rounds or the stricter runtime policy"
+assert_contains "$output" "not.*approval\|not.*correctness\|bounded.*fix\|unresolved" "Review cap does not waive correctness or unresolved blockers"
 
 output=$(ask "A worker reports the exact test command, exit code 0, key output, and no later code changed. Must the controller rerun that same targeted test?")
 assert_contains "$output" "no\|reuse\|trust\|not rerun\|do not rerun" "Valid worker evidence is reused"
 
-output=$(ask "What verification remains before SDD claims completion?")
-assert_contains "$output" "one.*fresh\|fresh.*final\|final verification" "One fresh final verification remains"
+output=$(ask "What verification remains before SDD claims completion, and may a current worker result satisfy it?")
+assert_contains "$output" "current\|still.valid\|reuse\|final verification" "One current final verification remains and valid evidence may satisfy it"
 
 output=$(ask "May an SDD worker commit or push by default?")
 assert_contains "$output" "no\|not.*unless\|explicit" "No commit or push without authorization"

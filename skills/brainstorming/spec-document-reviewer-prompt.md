@@ -29,7 +29,7 @@ Subagent (general-purpose):
     | Consistency | Internal contradictions, conflicting requirements |
     | Clarity | Requirements ambiguous enough to cause someone to build the wrong thing |
     | Scope | Focused enough for a single plan — not covering multiple independent subsystems |
-    | YAGNI | Unrequested features, over-engineering, safeguards with no named failure, limits justified only by a threat category ("attack", "resource exhaustion") without saying who can construct the input, home-made heuristics that guess data is changing or abnormal and then refuse, unrequested pages or blocking modes, new startup or main-thread work |
+    | YAGNI | Unrequested features, over-engineering, safeguards with no named failure, limits justified only by a threat category ("attack", "resource exhaustion") without saying who can construct the input, home-made heuristics that guess data is changing or abnormal and then refuse (e.g. compare file size, existence, or modification time before and after an operation and fail on mismatch), unrequested pages or blocking modes, new startup or main-thread work |
 
     ## Calibration
 
@@ -45,13 +45,16 @@ Subagent (general-purpose):
 
     ## Safeguard Inventory
 
-    Before writing the review, list every check, limit, fallback, block, retry,
-    rescue state, and new page the spec requires, including ones written as
-    acceptance criteria. For each one answer: which concrete failure it
+    Before writing the review, go through every check, limit, fallback, block,
+    retry, rescue state, and new page the spec requires, including ones written
+    as acceptance criteria. For each one answer: which concrete failure it
     prevents, who can construct that input and how it gets in, and which normal
-    operations it could reject or slow. Mark it Keep, Simplify, or Drop. If the
-    human partner asked for it explicitly, list it under "Needs human partner
-    confirmation" instead of dropping it.
+    operations it could reject or slow. If the human partner asked for it
+    explicitly, list it under "Needs human partner confirmation" instead of
+    dropping it.
+
+    Report only safeguards you would simplify or drop. Give the kept ones as a
+    count; do not list them.
 
     ## Output Format
 
@@ -62,9 +65,11 @@ Subagent (general-purpose):
     **Issues (if any):**
     - [Section X]: [specific issue] - [why it matters for planning]
 
-    **Safeguard inventory:**
-    | Safeguard | Failure prevented / who constructs the input | Normal use it could reject or slow | Keep / Simplify / Drop |
+    **Safeguards to simplify or drop:**
+    | Safeguard | What it claims to prevent / who constructs the input | Normal use it rejects or slows | Simplify / Drop |
     |---|---|---|---|
+
+    Kept as justified: N
 
     **Needs human partner confirmation:**
     - [requested safeguard]: [why it looks unnecessary] - [what dropping it would change]
@@ -73,4 +78,4 @@ Subagent (general-purpose):
     - [suggestions for improvement]
 ```
 
-**Reviewer returns:** Status, Issues (if any), Safeguard inventory, items needing confirmation, Recommendations
+**Reviewer returns:** Status, Issues (if any), safeguards to simplify or drop, items needing confirmation, Recommendations

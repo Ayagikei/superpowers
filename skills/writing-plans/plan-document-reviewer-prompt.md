@@ -30,7 +30,7 @@ Subagent (general-purpose):
     | Spec Alignment | Plan covers spec requirements, no major scope creep; spec-required safeguards still go through the inventory below |
     | Task Decomposition | Tasks have clear boundaries, steps are actionable |
     | Buildability | Could an engineer follow this plan without getting stuck? |
-    | Over-design | Checks, limits, fallbacks, blocks, or rescue states with no named failure; limits justified only by a threat category ("attack", "resource exhaustion") without saying who can construct the input; home-made heuristics that guess data is changing or abnormal and then refuse; duplicate validation or hashing; new startup or main-thread work; optional protection that blocks the main flow; pages or modes the spec did not ask for |
+    | Over-design | Checks, limits, fallbacks, blocks, or rescue states with no named failure; limits justified only by a threat category ("attack", "resource exhaustion") without saying who can construct the input; home-made heuristics that guess data is changing or abnormal and then refuse (e.g. compare file size, existence, or modification time before and after an operation and fail on mismatch); duplicate validation or hashing; new startup or main-thread work; optional protection that blocks the main flow; pages or modes the spec did not ask for |
     | Readability | Can the human partner tell from the opening summary what will change for users, including new pages, blocking states, and checks that can reject operations? |
 
     ## Calibration
@@ -44,19 +44,27 @@ Subagent (general-purpose):
     concrete trigger path and say which normal use they could reject. If the
     root cause can be fixed, recommend that instead of a check in front of it.
 
+    A plan whose opening does not say, in plain language, what changes for
+    users (new pages, blocking states, startup or main-thread work, checks that
+    can reject an operation) is an issue, not a recommendation: your human
+    partner approves the plan from that summary.
+
     Approve unless there are serious gaps — missing requirements from the spec,
     contradictory steps, placeholder content, or tasks so vague they can't be acted on.
 
     ## Safeguard Inventory
 
-    Before writing the review, list every check, limit, fallback, block, retry,
-    rescue state, and new page in the plan. Safeguards the spec requires are
-    not exempt: the spec may itself be over-designed. For each one answer:
+    Before writing the review, go through every check, limit, fallback, block,
+    retry, rescue state, and new page in the plan. Safeguards the spec requires
+    are not exempt: the spec may itself be over-designed. For each one answer:
     which concrete failure it prevents, who can construct that input and how it
     gets in, and which normal operations it could reject or slow. A safeguard
     that cannot answer, duplicates another check, or sits in front of a fixable
     root cause is an issue. When the spec requires it, list it under
     "Needs human partner confirmation" instead of rejecting it.
+
+    Report only safeguards you would simplify or drop. Give the kept ones as a
+    count; do not list them.
 
     ## Output Format
 
@@ -67,9 +75,11 @@ Subagent (general-purpose):
     **Issues (if any):**
     - [Task X, Step Y]: [specific issue] - [why it matters for implementation]
 
-    **Safeguard inventory:**
-    | Safeguard | Failure prevented / who constructs the input | Normal use it could reject or slow | Keep / Simplify / Drop |
+    **Safeguards to simplify or drop:**
+    | Safeguard | What it claims to prevent / who constructs the input | Normal use it rejects or slows | Simplify / Drop |
     |---|---|---|---|
+
+    Kept as justified: N
 
     **Needs human partner confirmation:**
     - [spec-required safeguard]: [why it looks unnecessary] - [what dropping it would change]
@@ -78,4 +88,4 @@ Subagent (general-purpose):
     - [suggestions for improvement]
 ```
 
-**Reviewer returns:** Status, Issues (if any), Safeguard inventory, items needing confirmation, Recommendations
+**Reviewer returns:** Status, Issues (if any), safeguards to simplify or drop, items needing confirmation, Recommendations

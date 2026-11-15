@@ -27,8 +27,11 @@ Cover only what changes implementation decisions:
 - existing patterns and affected boundaries;
 - recommended approach and meaningful alternatives;
 - invariants, failure behavior, data flow, and security/privacy concerns;
-- for each proposed safeguard (check, limit, fallback, block, rescue state):
-  the concrete failure it prevents and the normal use it could reject or slow;
+- a safeguard inventory: for each check, limit, fallback, block, retry, rescue
+  state, or new page, the concrete failure it prevents, who can construct that
+  input and how it gets in, and the normal use it could reject or slow. Drop
+  the ones that cannot answer before writing them as requirements or
+  acceptance criteria; later plan and code reviews treat spec text as given;
 - acceptance criteria and validation strategy;
 - open questions that would materially change the result.
 
@@ -50,8 +53,10 @@ tradeoffs or before a concrete visual decision exists.
   planning location. Do not commit it unless the user authorized a commit.
 
 Self-review the result for contradictions, placeholders, ambiguous semantics,
-and scope expansion. Fix those issues inline; do not add another review round
-unless a material decision changed.
+scope expansion, and safeguards that fail the inventory. Fix those issues
+inline; do not add another review round unless a material decision changed.
+When a Heavy spec is reviewed by a subagent, use
+[spec-document-reviewer-prompt.md](spec-document-reviewer-prompt.md).
 
 ## Transition
 

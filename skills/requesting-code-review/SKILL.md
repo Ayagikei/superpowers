@@ -31,15 +31,15 @@ Provide only:
 - prior validation commands and results;
 - delegation depth `0` because reviewers are leaves.
 
-Every review also checks over-defense, not only missing protection: checks or
-limits that reject legitimate input, limits justified only by a threat category
-without saying who can construct the input, home-made heuristics that guess
-data is changing or abnormal and then refuse, duplicate validation or hashing,
-heavy work on startup or the main thread, optional protection that blocks the
-main flow, and unrequested pages or modes. Rate these P1 when they can fail a
-normal user flow, block startup, or cause an ANR. A finding that asks for a new
-check, limit, or fallback must name a concrete trigger path and prefer fixing
-the root cause when that is possible.
+Every review includes a separate over-defense pass, not only a search for
+missing protection: the reviewer walks each path that throws, refuses, retries,
+or blocks and reports limits on the user's own data, home-made heuristics that
+guess data is changing or abnormal and then refuse, duplicate validation or
+hashing, heavy work on startup or the main thread, optional protection that
+blocks the main flow, and unrequested pages or modes. Rate these P1 when they
+can fail a normal user flow, block startup, or cause an ANR. A finding that
+asks for a new check, limit, or fallback must name a concrete trigger path and
+prefer fixing the root cause when that is possible.
 
 The reviewer is read-only and always a leaf. If a distinct security, platform,
 or persistence specialist is needed, the controller dispatches it separately
@@ -51,6 +51,9 @@ scope, or rerun valid tests merely to duplicate evidence.
 ```text
 Findings:
 - [P0-1|P1-1|P2-1] path:line - issue, impact, and concise correction
+Over-defense:
+- [P1-2|P2-2] path:line - what it rejects or slows, what it claims to prevent, simplification
+- Checked with no finding: <categories>
 Verification gaps: none | <missing evidence>
 Verdict: APPROVE | REVISE
 ```

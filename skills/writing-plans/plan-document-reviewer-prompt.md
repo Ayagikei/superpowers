@@ -27,7 +27,7 @@ Subagent (general-purpose):
     | Category | What to Look For |
     |----------|------------------|
     | Completeness | TODOs, placeholders, incomplete tasks, missing steps |
-    | Spec Alignment | Plan covers spec requirements, no major scope creep |
+    | Spec Alignment | Plan covers spec requirements, no major scope creep; spec-required safeguards still go through the inventory below |
     | Task Decomposition | Tasks have clear boundaries, steps are actionable |
     | Buildability | Could an engineer follow this plan without getting stuck? |
     | Over-design | Checks, limits, fallbacks, blocks, or rescue states with no named failure; limits justified only by a threat category ("attack", "resource exhaustion") without saying who can construct the input; home-made heuristics that guess data is changing or abnormal and then refuse; duplicate validation or hashing; new startup or main-thread work; optional protection that blocks the main flow; pages or modes the spec did not ask for |
@@ -47,6 +47,17 @@ Subagent (general-purpose):
     Approve unless there are serious gaps — missing requirements from the spec,
     contradictory steps, placeholder content, or tasks so vague they can't be acted on.
 
+    ## Safeguard Inventory
+
+    Before writing the review, list every check, limit, fallback, block, retry,
+    rescue state, and new page in the plan. Safeguards the spec requires are
+    not exempt: the spec may itself be over-designed. For each one answer:
+    which concrete failure it prevents, who can construct that input and how it
+    gets in, and which normal operations it could reject or slow. A safeguard
+    that cannot answer, duplicates another check, or sits in front of a fixable
+    root cause is an issue. When the spec requires it, list it under
+    "Needs human partner confirmation" instead of rejecting it.
+
     ## Output Format
 
     ## Plan Review
@@ -56,8 +67,15 @@ Subagent (general-purpose):
     **Issues (if any):**
     - [Task X, Step Y]: [specific issue] - [why it matters for implementation]
 
+    **Safeguard inventory:**
+    | Safeguard | Failure prevented / who constructs the input | Normal use it could reject or slow | Keep / Simplify / Drop |
+    |---|---|---|---|
+
+    **Needs human partner confirmation:**
+    - [spec-required safeguard]: [why it looks unnecessary] - [what dropping it would change]
+
     **Recommendations (advisory, do not block approval):**
     - [suggestions for improvement]
 ```
 
-**Reviewer returns:** Status, Issues (if any), Recommendations
+**Reviewer returns:** Status, Issues (if any), Safeguard inventory, items needing confirmation, Recommendations

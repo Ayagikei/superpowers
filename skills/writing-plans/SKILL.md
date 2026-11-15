@@ -50,7 +50,8 @@ can construct the input and how it gets in. Drop safeguards that cannot answer,
 that duplicate an existing check, that sit in front of a root cause the plan
 could fix instead, or that guard a failure downstream code already reports or
 rolls back. Optional protection must skip on failure instead of blocking the
-main flow or startup.
+main flow or startup. Safeguards copied from the spec are not exempt; when one
+fails this test, list it under Open questions instead of planning it silently.
 
 Use code snippets only when exact syntax or an interface would otherwise be
 ambiguous. Do not copy full implementations into the plan, require artificial
@@ -71,4 +72,5 @@ setup, tests, docs, and cleanup into the deliverable they support.
 
 Before handoff, check requirement coverage, type/interface consistency,
 placeholders, validation completeness, and the safeguard budget. Fix plan
-defects inline.
+defects inline. When the plan is reviewed by a subagent, use
+[plan-document-reviewer-prompt.md](plan-document-reviewer-prompt.md).

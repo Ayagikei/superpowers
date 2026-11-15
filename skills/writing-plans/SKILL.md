@@ -23,16 +23,31 @@ was loaded.
 
 ## Required plan content
 
-1. **Goal and acceptance:** user-visible result, non-goals, and completion bar.
-2. **Constraints:** product invariants, permission boundary, compatibility,
+1. **What changes for users (first, plain language):** a short list your human
+   partner can approve without reading the rest. Name every new page, dialog,
+   or blocking state; new startup or main-thread work; new check or limit that
+   can reject a user operation, and what it rejects; new background work or
+   stored data. Write "none" for empty items. No internal state names,
+   milestone codes, or agent names.
+2. **Goal and acceptance:** user-visible result, non-goals, and completion bar.
+3. **Constraints:** product invariants, permission boundary, compatibility,
    security/privacy, and dependencies.
-3. **File map:** exact files or modules and each one's responsibility.
-4. **Tasks:** coherent, independently checkable deliverables in dependency order.
-5. **Interfaces:** signatures, state transitions, or data flow where neighboring
+4. **File map:** exact files or modules and each one's responsibility.
+5. **Tasks:** coherent, independently checkable deliverables in dependency order.
+6. **Interfaces:** signatures, state transitions, or data flow where neighboring
    tasks depend on exact contracts.
-6. **Validation:** targeted commands, expected evidence, and one final integration
+7. **Validation:** targeted commands, expected evidence, and one final integration
    check. Include failure handling when validation is unavailable.
-7. **Open questions:** only decisions that still block or materially change implementation.
+8. **Open questions:** only decisions that still block or materially change implementation.
+
+## Safeguard budget
+
+Every safeguard in the plan (check, limit, fallback, block, retry, rescue
+state) must name the concrete failure it prevents, what the user loses without
+it, and which normal operations it could reject or slow. Drop safeguards that
+cannot answer, that duplicate an existing check, or that guard a failure
+downstream code already reports or rolls back. Optional protection must skip on
+failure instead of blocking the main flow or startup.
 
 Use code snippets only when exact syntax or an interface would otherwise be
 ambiguous. Do not copy full implementations into the plan, require artificial
@@ -52,4 +67,5 @@ setup, tests, docs, and cleanup into the deliverable they support.
 - Do not recommend fresh implementer and reviewer agents per task by default.
 
 Before handoff, check requirement coverage, type/interface consistency,
-placeholders, and validation completeness. Fix plan defects inline.
+placeholders, validation completeness, and the safeguard budget. Fix plan
+defects inline.

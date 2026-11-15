@@ -27,6 +27,8 @@ Cover only what changes implementation decisions:
 - existing patterns and affected boundaries;
 - recommended approach and meaningful alternatives;
 - invariants, failure behavior, data flow, and security/privacy concerns;
+- for each proposed safeguard (check, limit, fallback, block, rescue state):
+  the concrete failure it prevents and the normal use it could reject or slow;
 - acceptance criteria and validation strategy;
 - open questions that would materially change the result.
 

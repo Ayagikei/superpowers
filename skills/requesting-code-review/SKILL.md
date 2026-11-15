@@ -31,6 +31,13 @@ Provide only:
 - prior validation commands and results;
 - delegation depth `0` because reviewers are leaves.
 
+Every review also checks over-defense, not only missing protection: checks or
+limits that reject legitimate input, duplicate validation or hashing, heavy work
+on startup or the main thread, optional protection that blocks the main flow,
+and unrequested pages or modes. Rate these P1 when they can fail a normal user
+flow, block startup, or cause an ANR. A finding that asks for a new check,
+limit, or fallback must name a concrete trigger path.
+
 The reviewer is read-only and always a leaf. If a distinct security, platform,
 or persistence specialist is needed, the controller dispatches it separately
 within the overall depth budget. The reviewer does not modify code, expand

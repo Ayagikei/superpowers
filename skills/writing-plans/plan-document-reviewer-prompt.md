@@ -30,12 +30,18 @@ Subagent (general-purpose):
     | Spec Alignment | Plan covers spec requirements, no major scope creep |
     | Task Decomposition | Tasks have clear boundaries, steps are actionable |
     | Buildability | Could an engineer follow this plan without getting stuck? |
+    | Over-design | Checks, limits, fallbacks, blocks, or rescue states with no named failure; duplicate validation or hashing; new startup or main-thread work; optional protection that blocks the main flow; pages or modes the spec did not ask for |
+    | Readability | Can the human partner tell from the opening summary what will change for users, including new pages, blocking states, and checks that can reject operations? |
 
     ## Calibration
 
     **Only flag issues that would cause real problems during implementation.**
     An implementer building the wrong thing or getting stuck is an issue.
+    Unneeded mechanism is also an issue: it adds code that can reject normal use,
+    slow it down, or block startup. Recommend removing it.
     Minor wording, stylistic preferences, and "nice to have" suggestions are not.
+    Do not ask for new checks, limits, or fallbacks unless you can name a
+    concrete trigger path and say which normal use they could reject.
 
     Approve unless there are serious gaps — missing requirements from the spec,
     contradictory steps, placeholder content, or tasks so vague they can't be acted on.

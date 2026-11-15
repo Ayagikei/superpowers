@@ -16,7 +16,9 @@ For each finding, choose one:
   data risk, build failure, or other blocker inside the approved scope.
 - **Optional follow-up:** useful improvement that is not needed for this task.
 - **Requirement expansion:** adds scenarios, migration/backfill, redesign,
-  compatibility, or behavior beyond what the user approved.
+  compatibility, or behavior beyond what the user approved. This includes new
+  checks, limits, fallbacks, or blocking states for cases without a concrete
+  trigger path.
 - **Rejected:** technically incorrect or already covered; cite evidence.
 
 Implement required findings. Do not implement follow-ups or expansions without

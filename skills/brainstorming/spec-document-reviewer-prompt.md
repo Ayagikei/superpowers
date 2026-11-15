@@ -29,7 +29,7 @@ Subagent (general-purpose):
     | Consistency | Internal contradictions, conflicting requirements |
     | Clarity | Requirements ambiguous enough to cause someone to build the wrong thing |
     | Scope | Focused enough for a single plan — not covering multiple independent subsystems |
-    | YAGNI | Unrequested features, over-engineering |
+    | YAGNI | Unrequested features, over-engineering, safeguards with no named failure, unrequested pages or blocking modes, new startup or main-thread work |
 
     ## Calibration
 

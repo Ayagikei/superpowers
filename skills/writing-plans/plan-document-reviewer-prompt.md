@@ -30,7 +30,7 @@ Subagent (general-purpose):
     | Spec Alignment | Plan covers spec requirements, no major scope creep |
     | Task Decomposition | Tasks have clear boundaries, steps are actionable |
     | Buildability | Could an engineer follow this plan without getting stuck? |
-    | Over-design | Checks, limits, fallbacks, blocks, or rescue states with no named failure; duplicate validation or hashing; new startup or main-thread work; optional protection that blocks the main flow; pages or modes the spec did not ask for |
+    | Over-design | Checks, limits, fallbacks, blocks, or rescue states with no named failure; limits justified only by a threat category ("attack", "resource exhaustion") without saying who can construct the input; home-made heuristics that guess data is changing or abnormal and then refuse; duplicate validation or hashing; new startup or main-thread work; optional protection that blocks the main flow; pages or modes the spec did not ask for |
     | Readability | Can the human partner tell from the opening summary what will change for users, including new pages, blocking states, and checks that can reject operations? |
 
     ## Calibration
@@ -41,7 +41,8 @@ Subagent (general-purpose):
     slow it down, or block startup. Recommend removing it.
     Minor wording, stylistic preferences, and "nice to have" suggestions are not.
     Do not ask for new checks, limits, or fallbacks unless you can name a
-    concrete trigger path and say which normal use they could reject.
+    concrete trigger path and say which normal use they could reject. If the
+    root cause can be fixed, recommend that instead of a check in front of it.
 
     Approve unless there are serious gaps — missing requirements from the spec,
     contradictory steps, placeholder content, or tasks so vague they can't be acted on.

@@ -44,10 +44,13 @@ was loaded.
 
 Every safeguard in the plan (check, limit, fallback, block, retry, rescue
 state) must name the concrete failure it prevents, what the user loses without
-it, and which normal operations it could reject or slow. Drop safeguards that
-cannot answer, that duplicate an existing check, or that guard a failure
-downstream code already reports or rolls back. Optional protection must skip on
-failure instead of blocking the main flow or startup.
+it, and which normal operations it could reject or slow. A threat category
+such as "attack" or "resource exhaustion" is not a concrete failure; name who
+can construct the input and how it gets in. Drop safeguards that cannot answer,
+that duplicate an existing check, that sit in front of a root cause the plan
+could fix instead, or that guard a failure downstream code already reports or
+rolls back. Optional protection must skip on failure instead of blocking the
+main flow or startup.
 
 Use code snippets only when exact syntax or an interface would otherwise be
 ambiguous. Do not copy full implementations into the plan, require artificial
